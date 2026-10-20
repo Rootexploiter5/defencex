@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useId, useState } from "react"
 
 type IconName = "shield" | "home" | "pulse" | "brain" | "alert" | "globe" | "search" | "file" | "settings" | "bell" | "cpu" | "database" | "layers" | "sparkles" | "bot" | "arrow" | "chevron" | "sun" | "moon" | "wallet" | "zap" | "refresh" | "check"
@@ -414,6 +416,7 @@ function TabContent({
   const [eventQuery, setEventQuery] = useState("")
   const [eventType, setEventType] = useState("All")
   const [reviewed, setReviewed] = useState<string[]>(() => {
+    if (typeof window === "undefined") return []
     try {
       const saved = localStorage.getItem("defenx_reviewed")
       return saved ? JSON.parse(saved) : []
@@ -427,25 +430,19 @@ function TabContent({
   const [scanStep, setScanStep] = useState("")
   const [notice, setNotice] = useState("")
   const [settings, setSettings] = useState<Record<string, boolean>>(() => {
+    const defaultSettings = {
+      "Real-time protection": true,
+      "Behavioral analysis": true,
+      "Automatic security updates": true,
+      "Threat notifications": true,
+      "Weekly security summary": false,
+    }
+    if (typeof window === "undefined") return defaultSettings
     try {
       const saved = localStorage.getItem("defenx_settings")
-      return saved
-        ? JSON.parse(saved)
-        : {
-            "Real-time protection": true,
-            "Behavioral analysis": true,
-            "Automatic security updates": true,
-            "Threat notifications": true,
-            "Weekly security summary": false,
-          }
+      return saved ? JSON.parse(saved) : defaultSettings
     } catch {
-      return {
-        "Real-time protection": true,
-        "Behavioral analysis": true,
-        "Automatic security updates": true,
-        "Threat notifications": true,
-        "Weekly security summary": false,
-      }
+      return defaultSettings
     }
   })
 
@@ -1383,11 +1380,13 @@ function TabContent({
 }
 
 function currentTab() {
+  if (typeof window === "undefined") return "Dashboard"
   return navigation.find(item => item.label.toLowerCase().replace(/ /g, "-") === window.location.hash.slice(1))?.label ?? "Dashboard"
 }
 export default function App() {
   const [active, setActive] = useState(currentTab)
   const [balance, setBalance] = useState<number>(() => {
+    if (typeof window === "undefined") return 2450
     try {
       const saved = localStorage.getItem("defenx_balance")
       return saved ? parseInt(saved, 10) : 2450
@@ -1458,12 +1457,14 @@ export default function App() {
 
   function navigate(tab: string) {
     setActive(tab)
-    window.location.hash = tab.toLowerCase().replace(/ /g, "-")
+    if (typeof window !== "undefined") {
+      window.location.hash = tab.toLowerCase().replace(/ /g, "-")
+      window.scrollTo({ top: 0, behavior: "instant" })
+    }
     setModal(null)
     setBalanceModalOpen(false)
     setProfileOpen(false)
     setNotifications(false)
-    window.scrollTo({ top: 0, behavior: "instant" })
   }
 
   const [period, setPeriod] = useState("24h")
@@ -1472,6 +1473,7 @@ export default function App() {
   const [prompt, setPrompt] = useState("")
   const [answer, setAnswer] = useState("No unusual activity detected. Defense shield active.")
   const [dark, setDark] = useState(() => {
+    if (typeof window === "undefined") return false
     try {
       return localStorage.getItem("defenx_theme") === "dark"
     } catch {
