@@ -1,6 +1,6 @@
 # DefenX — AI Cybersecurity & Threat Intelligence Platform
 
-DefenX is an enterprise-grade AI cybersecurity and endpoint intelligence dashboard built with React 19, Vite, and Tailwind CSS. It delivers real-time system performance telemetry, behavioral anomaly detection, incident response, network topology analysis, and automated security containment.
+DefenX is an enterprise-grade AI cybersecurity and endpoint intelligence dashboard built with Next.js (App Router), React 19, and Tailwind CSS. It delivers real-time system performance telemetry, behavioral anomaly detection, incident response, network topology analysis, and automated security containment.
 
 ---
 
@@ -79,14 +79,14 @@ flowchart TD
 # Install dependencies
 npm install
 
-# Start the live development server
+# Start the live development server on port 8443
 npm run dev
 
 # Build for production
 npm run build
 
-# Preview production build
-npm run preview
+# Start production server on port 8443
+npm run start
 ```
 
 ### Keyboard Shortcuts
