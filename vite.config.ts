@@ -1,10 +1,19 @@
 import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import fs from 'node:fs'
 import path from 'node:path'
 
-import siteConfiguration from './.figma/make/site.json'
-
+let siteConfiguration: FigmaSiteConfiguration = {
+  title: "DefenX - AI Cybersecurity",
+  description: "DefenX AI Cybersecurity & Threat Intelligence Platform",
+}
+const siteConfigPath = path.resolve(__dirname, './.figma/make/site.json')
+if (fs.existsSync(siteConfigPath)) {
+  try {
+    siteConfiguration = JSON.parse(fs.readFileSync(siteConfigPath, 'utf-8'))
+  } catch {}
+}
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {

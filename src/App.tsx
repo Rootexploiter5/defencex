@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from "react"
 
-type IconName = "shield" | "home" | "pulse" | "brain" | "alert" | "globe" | "search" | "file" | "settings" | "bell" | "cpu" | "database" | "layers" | "sparkles" | "bot" | "arrow" | "chevron" | "sun" | "moon"
+type IconName = "shield" | "home" | "pulse" | "brain" | "alert" | "globe" | "search" | "file" | "settings" | "bell" | "cpu" | "database" | "layers" | "sparkles" | "bot" | "arrow" | "chevron" | "sun" | "moon" | "wallet" | "zap" | "refresh" | "check"
 function Icon({
   name,
   size = 24,
@@ -110,6 +110,22 @@ function Icon({
       </>
     ),
     moon: <path d="M20 15A9 9 0 0 1 9 3a9 9 0 1 0 11 12Z" />,
+    wallet: (
+      <>
+        <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
+        <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
+      </>
+    ),
+    zap: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />,
+    refresh: (
+      <>
+        <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+        <path d="M21 3v5h-5" />
+        <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+        <path d="M3 21v-5h5" />
+      </>
+    ),
+    check: <path d="M20 6 9 17l-5-5" />,
   }
   return (
     <svg
@@ -368,119 +384,1158 @@ const activity = [
   { time: "16:15:42", event: "Behavior analysis completed", source: "AI engine", category: "Analysis", result: "Normal" },
   { time: "16:00:00", event: "Scheduled system scan completed", source: "DefenX scanner", category: "Analysis", result: "Normal" },
 ]
-function TabContent({ active, dark, setDark, openDetail }: { active: string; dark: boolean; setDark: (value: boolean) => void; openDetail: (title: string) => void }) {
+function TabContent({
+  active,
+  dark,
+  setDark,
+  openDetail,
+  balance,
+  liveCpu,
+  liveMemory,
+  liveDownSpeed,
+  liveUpSpeed,
+  setBalanceModalOpen,
+}: {
+  active: string
+  dark: boolean
+  setDark: (value: boolean) => void
+  openDetail: (title: string) => void
+  balance: number
+  rechargeBalance: (amount: number) => void
+  liveCpu: number
+  liveMemory: number
+  liveDownSpeed: number
+  liveUpSpeed: number
+  setBalanceModalOpen: (open: boolean) => void
+}) {
   const [period, setPeriod] = useState("24h")
   const [paused, setPaused] = useState(false)
   const [filter, setFilter] = useState("All")
   const [eventQuery, setEventQuery] = useState("")
   const [eventType, setEventType] = useState("All")
-  const [reviewed, setReviewed] = useState<string[]>([])
+  const [reviewed, setReviewed] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("defenx_reviewed")
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
   const [scanDone, setScanDone] = useState(false)
+  const [scanning, setScanning] = useState(false)
+  const [scanProgress, setScanProgress] = useState(0)
+  const [scanStep, setScanStep] = useState("")
   const [notice, setNotice] = useState("")
-  const [settings, setSettings] = useState<Record<string, boolean>>({ "Real-time protection": true, "Behavioral analysis": true, "Automatic security updates": true, "Threat notifications": true, "Weekly security summary": false })
-  useEffect(() => { setNotice("") }, [active])
+  const [settings, setSettings] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem("defenx_settings")
+      return saved
+        ? JSON.parse(saved)
+        : {
+            "Real-time protection": true,
+            "Behavioral analysis": true,
+            "Automatic security updates": true,
+            "Threat notifications": true,
+            "Weekly security summary": false,
+          }
+    } catch {
+      return {
+        "Real-time protection": true,
+        "Behavioral analysis": true,
+        "Automatic security updates": true,
+        "Threat notifications": true,
+        "Weekly security summary": false,
+      }
+    }
+  })
+
+  useEffect(() => {
+    setNotice("")
+  }, [active])
+
+  function toggleReview(title: string) {
+    const updated = reviewed.includes(title)
+      ? reviewed.filter((t) => t !== title)
+      : [...reviewed, title]
+    setReviewed(updated)
+    localStorage.setItem("defenx_reviewed", JSON.stringify(updated))
+  }
+
+  function startAnalysis() {
+    if (scanning) return
+    setScanning(true)
+    setScanProgress(20)
+    setScanStep("Scanning active memory pages & signature tables...")
+    setTimeout(() => {
+      setScanProgress(55)
+      setScanStep("Auditing network sockets and inspecting process tree...")
+    }, 600)
+    setTimeout(() => {
+      setScanProgress(85)
+      setScanStep("Executing neural behavioral anomaly heuristics...")
+    }, 1200)
+    setTimeout(() => {
+      setScanProgress(100)
+      setScanStep(
+        "Analysis complete: 5/5 processes verified. Zero uncontained anomalies.",
+      )
+      setScanning(false)
+      setScanDone(true)
+      setNotice(
+        "Demo analysis completed: 5 sample processes reviewed. Defense integrity at 100%.",
+      )
+    }, 1800)
+  }
+
   function downloadReport(title: string) {
-    const rows = title === "Threat activity"
-      ? [["Alert", "Detail", "Review status"], ...alerts.map(a => [a.title, a.detail, reviewed.includes(a.title) ? "Reviewed" : "Awaiting review"])]
-      : title === "System performance"
-        ? [["Process", "CPU", "Memory", "Status"], ...processes.map(p => [p.name, p.cpu, p.memory, "Normal"])]
-        : [["Metric", "Value"], ["Protection", "Active"], ["Processes monitored", "5"], ["Alerts", "3"], ["CPU usage", "36%"], ["Memory usage", "58%"]]
-    const csv = [["DefenX demo report", title], ...rows].map(row => row.map(value => `"${value.replace(/"/g, '""')}"`).join(",")).join("\n")
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }))
+    const rows =
+      title === "Threat activity"
+        ? [
+            ["Alert", "Detail", "Review status"],
+            ...alerts.map((a) => [
+              a.title,
+              a.detail,
+              reviewed.includes(a.title) ? "Reviewed" : "Awaiting review",
+            ]),
+          ]
+        : title === "System performance"
+          ? [
+              ["Process", "CPU", "Memory", "Status"],
+              ...processes.map((p) => [p.name, p.cpu, p.memory, "Normal"]),
+            ]
+          : [
+              ["Metric", "Value"],
+              ["Protection", "Active"],
+              ["Processes monitored", "5"],
+              ["Alerts", "3"],
+              ["CPU usage", `${liveCpu}%`],
+              ["Memory usage", `${liveMemory}%`],
+              ["Defense Balance", `${balance} Credits`],
+            ]
+    const csv = [["DefenX live report", title], ...rows]
+      .map((row) => row.map((value) => `"${value.replace(/"/g, '""')}"`).join(","))
+      .join("\n")
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8;" }),
+    )
     const link = document.createElement("a")
     link.href = url
     link.download = `${title.toLowerCase().replace(/ /g, "-")}.csv`
     link.click()
     URL.revokeObjectURL(url)
-    setNotice(`${title} downloaded as CSV.`)
+    setNotice(`${title} exported as CSV.`)
   }
-  function summary(items: { label: string; value: string; detail: string; icon: IconName }[]) {
-    return <div className="tab-summary">{items.map(item => <article className="card summary-card" key={item.label}><div className="stat-icon"><Icon name={item.icon} size={27}/></div><div><span>{item.label}</span><strong>{item.value}</strong><small>{item.detail}</small></div></article>)}</div>
+
+  function summary(
+    items: { label: string; value: string; detail: string; icon: IconName }[],
+  ) {
+    return (
+      <div className="tab-summary">
+        {items.map((item) => (
+          <article className="card summary-card" key={item.label}>
+            <div className="stat-icon">
+              <Icon name={item.icon} size={27} />
+            </div>
+            <div>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <small>{item.detail}</small>
+            </div>
+          </article>
+        ))}
+      </div>
+    )
   }
+
   function processTable() {
-    return <div className="table-scroll"><table className="data-table"><thead><tr><th>Process</th><th>CPU usage</th><th>Memory</th><th>Status</th><th>Details</th></tr></thead><tbody>{processes.map(p => <tr key={p.name}><td><span className="process-name"><span className={`process-logo ${p.logo}`}>{p.letter}</span>{p.name}</span></td><td>{p.cpu}</td><td>{p.memory}</td><td><span className="normal"><i/>Normal</span></td><td><button className="text-button" onClick={() => openDetail(p.name)}>Inspect <Icon name="arrow" size={16}/></button></td></tr>)}</tbody></table></div>
+    return (
+      <div className="table-scroll">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Process</th>
+              <th>CPU usage</th>
+              <th>Memory</th>
+              <th>Status</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {processes.map((p) => (
+              <tr key={p.name}>
+                <td>
+                  <span className="process-name">
+                    <span className={`process-logo ${p.logo}`}>{p.letter}</span>
+                    {p.name}
+                  </span>
+                </td>
+                <td>{p.cpu}</td>
+                <td>{p.memory}</td>
+                <td>
+                  <span className="normal">
+                    <i />
+                    Normal
+                  </span>
+                </td>
+                <td>
+                  <button
+                    className="text-button"
+                    onClick={() => openDetail(p.name)}
+                  >
+                    Inspect <Icon name="arrow" size={16} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
   }
-  return <section className="tab-page" aria-labelledby="page-title">
-    <div className="tab-page-heading"><div><span className="eyebrow">DEFENX / {active.toUpperCase()}</span><h1 id="page-title">{active}</h1><p>{tabDescriptions[active]}</p></div><span className="demo-label">Demo workspace</span></div>
-    {notice && <div className="inline-notice" role="status"><Icon name="shield" size={20}/>{notice}<button onClick={() => setNotice("")} aria-label="Dismiss message">×</button></div>}
-    {active === "Live Monitor" && <>
-      {summary([{ label: "CPU usage", value: "36%", detail: "Within normal range", icon: "cpu" }, { label: "Memory usage", value: "58%", detail: "9.3 GB of 16 GB", icon: "database" }, { label: "Running processes", value: "5", detail: "All processes healthy", icon: "layers" }])}
-      <section className="card tab-panel monitor-panel"><div className="section-heading"><h2><Icon name="pulse"/>System Performance</h2><button className="secondary-button" onClick={() => setPaused(!paused)}>{paused ? "Resume monitoring" : "Pause monitoring"}</button></div><div className="tab-toolbar"><span className={paused ? "muted" : "live"}>{paused ? "Display paused" : "Sample telemetry"}</span><div className="periods">{["1h", "6h", "24h", "7d"].map(p => <button key={p} className={period === p ? "selected" : ""} disabled={paused} onClick={() => setPeriod(p)}>{p}</button>)}</div></div><PerformanceChart period={period}/></section>
-      <section className="card tab-panel"><div className="section-heading"><h2><Icon name="layers"/>Running Processes</h2><span className="muted">5 processes</span></div>{processTable()}</section>
-    </>}
-    {active === "AI Detection" && <>
-      {summary([{ label: "Anomaly score", value: "12.4 / 100", detail: "Normal behavior", icon: "pulse" }, { label: "Detection engine", value: "Active", detail: "Behavioral analysis enabled", icon: "brain" }, { label: "Processes analyzed", value: scanDone ? "5 / 5" : "5", detail: scanDone ? "Demo analysis completed" : "No active threats found", icon: "shield" }])}
-      <div className="tab-columns"><section className="card tab-panel"><div className="section-heading"><h2><Icon name="brain"/>Behavioral Analysis</h2><span className="beta">AI powered</span></div><div className="analysis-score"><div className="score-ring"><strong>12.4<span>/ 100</span></strong></div><div><h3>Normal behavior</h3><p>System activity is within expected patterns. Suspicious events have been contained.</p></div></div><button className="primary-button" onClick={() => { setScanDone(true); setNotice("Demo analysis completed: 5 sample processes reviewed. No additional anomalies found.") }}>Run demo analysis <Icon name="sparkles" size={18}/></button></section><section className="card tab-panel"><h2><Icon name="sparkles"/>Detection Coverage</h2>{[["Process behavior", 96], ["Network patterns", 91], ["System integrity", 98]].map(([label, value]) => <div className="coverage" key={label}><div><span>{label}</span><strong>{value}%</strong></div><div className="coverage-track"><i style={{ width: `${value}%` }}/></div></div>)}<p className="muted">Illustrative coverage metrics for this demo workspace.</p></section></div>
-      <section className="card tab-panel"><h2><Icon name="layers"/>Analyzed Processes</h2>{processTable()}</section>
-    </>}
-    {active === "Threat Center" && <>
-      {summary([{ label: "Total alerts", value: "3", detail: "In this demo workspace", icon: "alert" }, { label: "Awaiting review", value: String(3 - reviewed.length), detail: "Review the details below", icon: "search" }, { label: "Reviewed", value: String(reviewed.length), detail: "During this session", icon: "shield" }])}
-      <section className="card tab-panel"><div className="section-heading"><h2><Icon name="alert"/>Security Alerts</h2><span className="muted">{filter === "All" ? 3 : filter === "Reviewed" ? reviewed.length : 3 - reviewed.length} alerts</span></div><div className="filter-chips" aria-label="Filter alerts">{["All", "Awaiting review", "Reviewed"].map(f => <button key={f} aria-pressed={filter === f} className={filter === f ? "selected" : ""} onClick={() => setFilter(f)}>{f}</button>)}</div><div className="detailed-alerts">{alerts.filter(a => filter === "All" || (filter === "Reviewed" ? reviewed.includes(a.title) : !reviewed.includes(a.title))).map(a => <article className={`detailed-alert ${a.type}`} key={a.title}><span className="alert-symbol">{a.symbol}</span><div><div className="alert-title"><h3>{a.title}</h3><time>{a.time}</time></div><p>{a.description}</p><div className="alert-controls"><button className="text-button" onClick={() => openDetail(a.title)}>View evidence <Icon name="arrow" size={16}/></button><button className="secondary-button" onClick={() => setReviewed(reviewed.includes(a.title) ? reviewed.filter(t => t !== a.title) : [...reviewed, a.title])}>{reviewed.includes(a.title) ? "Reopen review" : "Mark as reviewed"}</button>{reviewed.includes(a.title) && <span className="normal"><i/>Reviewed</span>}</div></div></article>)}</div>{!alerts.some(a => filter === "All" || (filter === "Reviewed" ? reviewed.includes(a.title) : !reviewed.includes(a.title))) && <div className="empty-state"><Icon name="shield" size={40}/><h3>You're all caught up</h3><p>No alerts in this view.</p></div>}</section>
-    </>}
-    {active === "Network" && <>
-      {summary([{ label: "Download speed", value: "48.2 Mbps", detail: "Incoming traffic", icon: "pulse" }, { label: "Upload speed", value: "12.6 Mbps", detail: "Outgoing traffic", icon: "globe" }, { label: "Connected devices", value: "3", detail: "1 device awaiting review", icon: "cpu" }])}
-      <div className="tab-columns"><section className="card tab-panel traffic-panel"><div className="section-heading"><h2><Icon name="globe"/>Traffic Overview</h2><span className="live"><i/>Sample traffic</span></div><NetworkChart/><div className="network-speeds"><span><b>↓</b>48.2 Mbps</span><span><b>↑</b>12.6 Mbps</span></div></section><section className="card tab-panel"><h2><Icon name="shield"/>Connection Security</h2><div className="connection-health"><Icon name="shield" size={46}/><h3>Your network is protected</h3><p>Unknown outbound connections are blocked. Review new devices before trusting them.</p></div></section></div>
-      <section className="card tab-panel"><h2><Icon name="cpu"/>Connected Devices</h2><div className="table-scroll"><table className="data-table"><thead><tr><th>Device</th><th>IP address</th><th>Connection</th><th>Status</th></tr></thead><tbody>{[["This workstation", "192.168.1.101", "Ethernet", "Trusted"], ["Office router", "192.168.1.1", "Gateway", "Trusted"], ["Unknown device", "192.168.1.105", "Wi-Fi", "Review"]].map(d => <tr key={d[1]}><td>{d[0]}</td><td>{d[1]}</td><td>{d[2]}</td><td>{d[3] === "Review" ? <button className="text-button" onClick={() => openDetail("New Device Connected")}>Review device <Icon name="arrow" size={16}/></button> : <span className="normal"><i/>Trusted</span>}</td></tr>)}</tbody></table></div></section>
-    </>}
-    {active === "Forensics" && <>
-      {summary([{ label: "Recorded events", value: "5", detail: "Sample activity timeline", icon: "file" }, { label: "Contained events", value: "2", detail: "Process and connection", icon: "shield" }, { label: "Investigation scope", value: "This device", detail: "Current session", icon: "search" }])}
-      <section className="card tab-panel"><div className="section-heading"><h2><Icon name="search"/>Event Timeline</h2><span className="muted">Today · sample data</span></div><div className="tab-toolbar"><label className="field-search"><Icon name="search" size={19}/><input aria-label="Search events" placeholder="Search events or sources..." value={eventQuery} onChange={e => setEventQuery(e.target.value)}/></label><select aria-label="Event type" value={eventType} onChange={e => setEventType(e.target.value)}>{["All", "Process", "Network", "Analysis"].map(t => <option key={t} value={t}>{t === "All" ? "All event types" : t}</option>)}</select></div><div className="table-scroll"><table className="data-table"><thead><tr><th>Time</th><th>Event</th><th>Source</th><th>Type</th><th>Outcome</th></tr></thead><tbody>{activity.filter(e => (eventType === "All" || e.category === eventType) && `${e.event} ${e.source}`.toLowerCase().includes(eventQuery.toLowerCase())).map(e => <tr key={e.time}><td className="event-time">{e.time}</td><td>{e.event}</td><td>{e.source}</td><td>{e.category}</td><td><span className={e.result === "Review" ? "review-badge" : "normal"}>{e.result}</span></td></tr>)}</tbody></table></div>{!activity.some(e => (eventType === "All" || e.category === eventType) && `${e.event} ${e.source}`.toLowerCase().includes(eventQuery.toLowerCase())) && <div className="empty-state"><Icon name="search" size={36}/><h3>No matching events</h3><p>Try a different search or event type.</p></div>}</section>
-    </>}
-    {active === "Reports" && <>
-      <div className="report-banner card"><div className="stat-icon"><Icon name="file" size={32}/></div><div><h2>Security insights, ready to share</h2><p>Download a CSV summary of the sample data in this workspace.</p></div><button className="primary-button" onClick={() => downloadReport("Security overview")}>Export overview <Icon name="arrow" size={18}/></button></div>
-      <div className="reports-grid">{[{ title: "Security overview", description: "Protection status, system health, and a high-level summary.", icon: "shield" as IconName }, { title: "Threat activity", description: "Alert counts and a snapshot of current security activity.", icon: "alert" as IconName }, { title: "System performance", description: "CPU, memory, and monitored process summary.", icon: "pulse" as IconName }].map(report => <article className="card tab-panel report-card" key={report.title}><div className="report-icon"><Icon name={report.icon} size={31}/></div><span className="eyebrow">DEMO REPORT · CSV</span><h2>{report.title}</h2><p>{report.description}</p><button className="secondary-button" onClick={() => downloadReport(report.title)}>Download report <Icon name="arrow" size={17}/></button></article>)}</div>
-    </>}
-    {active === "Settings" && <>
-      <div className="settings-note"><Icon name="shield" size={19}/><span>Preview settings apply to this session only. No device configuration is changed.</span></div>
-      <div className="tab-columns settings-columns"><section className="card tab-panel"><h2><Icon name="shield"/>Protection & Notifications</h2><div className="settings-list">{Object.entries(settings).map(([label, enabled]) => <label key={label}><span><strong>{label}</strong><small>{label === "Real-time protection" ? "Monitor suspicious activity as it happens." : label === "Behavioral analysis" ? "Identify unusual application behavior." : label === "Automatic security updates" ? "Keep detection definitions up to date." : label === "Threat notifications" ? "Stay informed about new security alerts." : "Receive a summary of your security posture."}</small></span><input type="checkbox" role="switch" checked={enabled} onChange={e => setSettings({ ...settings, [label]: e.target.checked })}/></label>)}</div><span className="muted">Changes are applied automatically in this demo.</span></section><div className="settings-side"><section className="card tab-panel"><h2><Icon name="sun"/>Appearance</h2><p className="muted">Choose your workspace color theme.</p><div className="theme-options"><button className={!dark ? "selected" : ""} aria-pressed={!dark} onClick={() => setDark(false)}><Icon name="sun"/>Light</button><button className={dark ? "selected" : ""} aria-pressed={dark} onClick={() => setDark(true)}><Icon name="moon"/>Dark</button></div></section><section className="card tab-panel"><h2><Icon name="shield"/>About DefenX</h2><p className="muted">AI Cybersecurity · Interface preview</p><div className="about-row"><span>Workspace</span><strong>Demo</strong></div><div className="about-row"><span>Analyst</span><strong>Akhilesh A S</strong></div><div className="about-row"><span>Data source</span><strong>Sample data</strong></div></section></div></div>
-    </>}
-  </section>
+
+  return (
+    <section className="tab-page" aria-labelledby="page-title">
+      <div className="tab-page-heading">
+        <div>
+          <span className="eyebrow">DEFENX / {active.toUpperCase()}</span>
+          <h1 id="page-title">{active}</h1>
+          <p>{tabDescriptions[active]}</p>
+        </div>
+        <span className="demo-label">Live Shield Workspace</span>
+      </div>
+      {notice && (
+        <div className="inline-notice" role="status">
+          <Icon name="shield" size={20} />
+          {notice}
+          <button onClick={() => setNotice("")} aria-label="Dismiss message">
+            ×
+          </button>
+        </div>
+      )}
+      {active === "Live Monitor" && (
+        <>
+          {summary([
+            {
+              label: "CPU usage",
+              value: `${liveCpu}%`,
+              detail: "Real-time telemetry stream",
+              icon: "cpu",
+            },
+            {
+              label: "Memory usage",
+              value: `${liveMemory}%`,
+              detail: `${((16 * liveMemory) / 100).toFixed(1)} GB of 16 GB`,
+              icon: "database",
+            },
+            {
+              label: "Running processes",
+              value: "5",
+              detail: "All processes healthy & verified",
+              icon: "layers",
+            },
+          ])}
+          <section className="card tab-panel monitor-panel">
+            <div className="section-heading">
+              <h2>
+                <Icon name="pulse" />
+                System Performance
+              </h2>
+              <button
+                className="secondary-button"
+                onClick={() => setPaused(!paused)}
+              >
+                {paused ? "Resume monitoring" : "Pause monitoring"}
+              </button>
+            </div>
+            <div className="tab-toolbar">
+              <span className={paused ? "muted" : "live"}>
+                {paused ? "Display paused" : "Live Telemetry Feed"}
+              </span>
+              <div className="periods">
+                {["1h", "6h", "24h", "7d"].map((p) => (
+                  <button
+                    key={p}
+                    className={period === p ? "selected" : ""}
+                    disabled={paused}
+                    onClick={() => setPeriod(p)}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <PerformanceChart period={period} />
+          </section>
+          <section className="card tab-panel">
+            <div className="section-heading">
+              <h2>
+                <Icon name="layers" />
+                Running Processes
+              </h2>
+              <span className="muted">5 active processes</span>
+            </div>
+            {processTable()}
+          </section>
+        </>
+      )}
+      {active === "AI Detection" && (
+        <>
+          {summary([
+            {
+              label: "Anomaly score",
+              value: "12.4 / 100",
+              detail: "Normal behavior benchmark",
+              icon: "pulse",
+            },
+            {
+              label: "Detection engine",
+              value: "Active",
+              detail: "Neural heuristics active",
+              icon: "brain",
+            },
+            {
+              label: "Processes analyzed",
+              value: scanDone ? "5 / 5" : "5",
+              detail: scanDone
+                ? "Heuristic scan completed"
+                : "No active threats found",
+              icon: "shield",
+            },
+          ])}
+          <div className="tab-columns">
+            <section className="card tab-panel">
+              <div className="section-heading">
+                <h2>
+                  <Icon name="brain" />
+                  Behavioral Analysis
+                </h2>
+                <span className="beta">AI powered</span>
+              </div>
+              <div className="analysis-score">
+                <div className="score-ring">
+                  <strong>
+                    12.4<span>/ 100</span>
+                  </strong>
+                </div>
+                <div>
+                  <h3>Normal behavior</h3>
+                  <p>
+                    System activity is within expected patterns. Suspicious
+                    events have been contained.
+                  </p>
+                </div>
+              </div>
+              <button
+                className="primary-button"
+                disabled={scanning}
+                onClick={startAnalysis}
+              >
+                {scanning ? "Analyzing System..." : "Run demo analysis"}{" "}
+                <Icon name="sparkles" size={18} />
+              </button>
+              {scanning && (
+                <div style={{ marginTop: "14px" }}>
+                  <div className="scan-progress-wrap">
+                    <div
+                      className="scan-progress-fill"
+                      style={{ width: `${scanProgress}%` }}
+                    />
+                  </div>
+                  <small
+                    style={{
+                      color: "#79111e",
+                      fontWeight: 600,
+                      display: "block",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {scanStep} ({scanProgress}%)
+                  </small>
+                </div>
+              )}
+            </section>
+            <section className="card tab-panel">
+              <h2>
+                <Icon name="sparkles" />
+                Detection Coverage
+              </h2>
+              {[
+                ["Process behavior", 96],
+                ["Network patterns", 91],
+                ["System integrity", 98],
+              ].map(([label, value]) => (
+                <div className="coverage" key={label}>
+                  <div>
+                    <span>{label}</span>
+                    <strong>{value}%</strong>
+                  </div>
+                  <div className="coverage-track">
+                    <i style={{ width: `${value}%` }} />
+                  </div>
+                </div>
+              ))}
+              <p className="muted">Coverage metrics across memory and kernel hooks.</p>
+            </section>
+          </div>
+          <section className="card tab-panel">
+            <h2>
+              <Icon name="layers" />
+              Analyzed Processes
+            </h2>
+            {processTable()}
+          </section>
+        </>
+      )}
+      {active === "Threat Center" && (
+        <>
+          {summary([
+            {
+              label: "Total alerts",
+              value: "3",
+              detail: "Active containment center",
+              icon: "alert",
+            },
+            {
+              label: "Awaiting review",
+              value: String(3 - reviewed.length),
+              detail: "Review the evidence below",
+              icon: "search",
+            },
+            {
+              label: "Reviewed",
+              value: String(reviewed.length),
+              detail: "During this session",
+              icon: "shield",
+            },
+          ])}
+          <section className="card tab-panel">
+            <div className="section-heading">
+              <h2>
+                <Icon name="alert" />
+                Security Alerts
+              </h2>
+              <span className="muted">
+                {filter === "All"
+                  ? 3
+                  : filter === "Reviewed"
+                    ? reviewed.length
+                    : 3 - reviewed.length}{" "}
+                alerts
+              </span>
+            </div>
+            <div className="filter-chips" aria-label="Filter alerts">
+              {["All", "Awaiting review", "Reviewed"].map((f) => (
+                <button
+                  key={f}
+                  aria-pressed={filter === f}
+                  className={filter === f ? "selected" : ""}
+                  onClick={() => setFilter(f)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <div className="detailed-alerts">
+              {alerts
+                .filter(
+                  (a) =>
+                    filter === "All" ||
+                    (filter === "Reviewed"
+                      ? reviewed.includes(a.title)
+                      : !reviewed.includes(a.title)),
+                )
+                .map((a) => (
+                  <article className={`detailed-alert ${a.type}`} key={a.title}>
+                    <span className="alert-symbol">{a.symbol}</span>
+                    <div>
+                      <div className="alert-title">
+                        <h3>{a.title}</h3>
+                        <time>{a.time}</time>
+                      </div>
+                      <p>{a.description}</p>
+                      <div className="alert-controls">
+                        <button
+                          className="text-button"
+                          onClick={() => openDetail(a.title)}
+                        >
+                          View evidence <Icon name="arrow" size={16} />
+                        </button>
+                        <button
+                          className="secondary-button"
+                          onClick={() => toggleReview(a.title)}
+                        >
+                          {reviewed.includes(a.title)
+                            ? "Reopen review"
+                            : "Mark as reviewed"}
+                        </button>
+                        {reviewed.includes(a.title) && (
+                          <span className="normal">
+                            <i />
+                            Reviewed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+            </div>
+            {!alerts.some(
+              (a) =>
+                filter === "All" ||
+                (filter === "Reviewed"
+                  ? reviewed.includes(a.title)
+                  : !reviewed.includes(a.title)),
+            ) && (
+              <div className="empty-state">
+                <Icon name="shield" size={40} />
+                <h3>You're all caught up</h3>
+                <p>No alerts in this view.</p>
+              </div>
+            )}
+          </section>
+        </>
+      )}
+      {active === "Network" && (
+        <>
+          {summary([
+            {
+              label: "Download speed",
+              value: `${liveDownSpeed} Mbps`,
+              detail: "Incoming traffic stream",
+              icon: "pulse",
+            },
+            {
+              label: "Upload speed",
+              value: `${liveUpSpeed} Mbps`,
+              detail: "Outgoing telemetry stream",
+              icon: "globe",
+            },
+            {
+              label: "Connected devices",
+              value: "3",
+              detail: "1 device awaiting review",
+              icon: "cpu",
+            },
+          ])}
+          <div className="tab-columns">
+            <section className="card tab-panel traffic-panel">
+              <div className="section-heading">
+                <h2>
+                  <Icon name="globe" />
+                  Traffic Overview
+                </h2>
+                <span className="live">
+                  <i />
+                  Live Stream
+                </span>
+              </div>
+              <NetworkChart />
+              <div className="network-speeds">
+                <span>
+                  <b>↓</b>
+                  {liveDownSpeed} Mbps
+                </span>
+                <span>
+                  <b>↑</b>
+                  {liveUpSpeed} Mbps
+                </span>
+              </div>
+            </section>
+            <section className="card tab-panel">
+              <h2>
+                <Icon name="shield" />
+                Connection Security
+              </h2>
+              <div className="connection-health">
+                <Icon name="shield" size={46} />
+                <h3>Your network is protected</h3>
+                <p>
+                  Unknown outbound connections are blocked. Review new devices
+                  before trusting them.
+                </p>
+              </div>
+            </section>
+          </div>
+
+          <section className="card tab-panel load-balancer-panel">
+            <div className="section-heading">
+              <h2>
+                <Icon name="pulse" size={26} />
+                Global Load Balancer & Traffic Distribution
+              </h2>
+              <span className="live">
+                <i />
+                Equilibrium Active
+              </span>
+            </div>
+            <div className="balancer-grid">
+              <div className="balancer-node">
+                <div className="node-head">
+                  <span>Node US-East (Virginia)</span>
+                  <b className="status-badge online">Healthy</b>
+                </div>
+                <div className="node-metric">
+                  <span>Traffic Load</span>
+                  <strong>34%</strong>
+                </div>
+                <div className="node-bar">
+                  <div style={{ width: "34%" }} />
+                </div>
+                <small>Latency: 18ms · 1.4k req/s</small>
+              </div>
+              <div className="balancer-node">
+                <div className="node-head">
+                  <span>Node EU-Central (Frankfurt)</span>
+                  <b className="status-badge online">Healthy</b>
+                </div>
+                <div className="node-metric">
+                  <span>Traffic Load</span>
+                  <strong>42%</strong>
+                </div>
+                <div className="node-bar">
+                  <div style={{ width: "42%" }} />
+                </div>
+                <small>Latency: 24ms · 1.8k req/s</small>
+              </div>
+              <div className="balancer-node">
+                <div className="node-head">
+                  <span>Node AP-South (Mumbai)</span>
+                  <b className="status-badge online">Healthy</b>
+                </div>
+                <div className="node-metric">
+                  <span>Traffic Load</span>
+                  <strong>24%</strong>
+                </div>
+                <div className="node-bar">
+                  <div style={{ width: "24%" }} />
+                </div>
+                <small>Latency: 41ms · 950 req/s</small>
+              </div>
+            </div>
+            <div className="balancer-summary">
+              <span>
+                <b>Algorithm:</b> Dynamic Weighted Least Connections (L4/L7)
+              </span>
+              <span>
+                <b>Cluster Health:</b> 3/3 Regional Clusters Active
+              </span>
+              <span>
+                <b>Balance State:</b> Healthy · Auto-failover ready
+              </span>
+            </div>
+          </section>
+
+          <section className="card tab-panel">
+            <h2>
+              <Icon name="cpu" />
+              Connected Devices
+            </h2>
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Device</th>
+                    <th>IP address</th>
+                    <th>Connection</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["This workstation", "192.168.1.101", "Ethernet", "Trusted"],
+                    ["Office router", "192.168.1.1", "Gateway", "Trusted"],
+                    ["Unknown device", "192.168.1.105", "Wi-Fi", "Review"],
+                  ].map((d) => (
+                    <tr key={d[1]}>
+                      <td>{d[0]}</td>
+                      <td>{d[1]}</td>
+                      <td>{d[2]}</td>
+                      <td>
+                        {d[3] === "Review" ? (
+                          <button
+                            className="text-button"
+                            onClick={() => openDetail("New Device Connected")}
+                          >
+                            Review device <Icon name="arrow" size={16} />
+                          </button>
+                        ) : (
+                          <span className="normal">
+                            <i />
+                            Trusted
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </>
+      )}
+      {active === "Forensics" && (
+        <>
+          {summary([
+            {
+              label: "Recorded events",
+              value: "5",
+              detail: "Sample activity timeline",
+              icon: "file",
+            },
+            {
+              label: "Contained events",
+              value: "2",
+              detail: "Process and connection",
+              icon: "shield",
+            },
+            {
+              label: "Investigation scope",
+              value: "This device",
+              detail: "Current session",
+              icon: "search",
+            },
+          ])}
+          <section className="card tab-panel">
+            <div className="section-heading">
+              <h2>
+                <Icon name="search" />
+                Event Timeline
+              </h2>
+              <span className="muted">Today · Live Event Bus</span>
+            </div>
+            <div className="tab-toolbar">
+              <label className="field-search">
+                <Icon name="search" size={19} />
+                <input
+                  aria-label="Search events"
+                  placeholder="Search events or sources..."
+                  value={eventQuery}
+                  onChange={(e) => setEventQuery(e.target.value)}
+                />
+              </label>
+              <select
+                aria-label="Event type"
+                value={eventType}
+                onChange={(e) => setEventType(e.target.value)}
+              >
+                {["All", "Process", "Network", "Analysis"].map((t) => (
+                  <option key={t} value={t}>
+                    {t === "All" ? "All event types" : t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Event</th>
+                    <th>Source</th>
+                    <th>Type</th>
+                    <th>Outcome</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activity
+                    .filter(
+                      (e) =>
+                        (eventType === "All" || e.category === eventType) &&
+                        `${e.event} ${e.source}`
+                          .toLowerCase()
+                          .includes(eventQuery.toLowerCase()),
+                    )
+                    .map((e) => (
+                      <tr key={e.time}>
+                        <td className="event-time">{e.time}</td>
+                        <td>{e.event}</td>
+                        <td>{e.source}</td>
+                        <td>{e.category}</td>
+                        <td>
+                          <span
+                            className={
+                              e.result === "Review" ? "review-badge" : "normal"
+                            }
+                          >
+                            {e.result}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+            {!activity.some(
+              (e) =>
+                (eventType === "All" || e.category === eventType) &&
+                `${e.event} ${e.source}`
+                  .toLowerCase()
+                  .includes(eventQuery.toLowerCase()),
+            ) && (
+              <div className="empty-state">
+                <Icon name="search" size={36} />
+                <h3>No matching events</h3>
+                <p>Try a different search or event type.</p>
+              </div>
+            )}
+          </section>
+        </>
+      )}
+      {active === "Reports" && (
+        <>
+          <div className="report-banner card">
+            <div className="stat-icon">
+              <Icon name="file" size={32} />
+            </div>
+            <div>
+              <h2>Security insights, ready to share</h2>
+              <p>Download a CSV summary of the live data in this workspace.</p>
+            </div>
+            <button
+              className="primary-button"
+              onClick={() => downloadReport("Security overview")}
+            >
+              Export overview <Icon name="arrow" size={18} />
+            </button>
+          </div>
+          <div className="reports-grid">
+            {[
+              {
+                title: "Security overview",
+                description:
+                  "Protection status, system health, and a high-level summary.",
+                icon: "shield" as IconName,
+              },
+              {
+                title: "Threat activity",
+                description:
+                  "Alert counts and a snapshot of current security activity.",
+                icon: "alert" as IconName,
+              },
+              {
+                title: "System performance",
+                description: "CPU, memory, and monitored process summary.",
+                icon: "pulse" as IconName,
+              },
+            ].map((report) => (
+              <article
+                className="card tab-panel report-card"
+                key={report.title}
+              >
+                <div className="report-icon">
+                  <Icon name={report.icon} size={31} />
+                </div>
+                <span className="eyebrow">LIVE REPORT · CSV</span>
+                <h2>{report.title}</h2>
+                <p>{report.description}</p>
+                <button
+                  className="secondary-button"
+                  onClick={() => downloadReport(report.title)}
+                >
+                  Download report <Icon name="arrow" size={17} />
+                </button>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
+      {active === "Settings" && (
+        <>
+          <div className="settings-note">
+            <Icon name="shield" size={19} />
+            <span>
+              Preview settings apply to this session. Changes persist in your
+              browser.
+            </span>
+          </div>
+          <div className="tab-columns settings-columns">
+            <section className="card tab-panel">
+              <h2>
+                <Icon name="shield" />
+                Protection & Notifications
+              </h2>
+              <div className="settings-list">
+                {Object.entries(settings).map(([label, enabled]) => (
+                  <label key={label}>
+                    <span>
+                      <strong>{label}</strong>
+                      <small>
+                        {label === "Real-time protection"
+                          ? "Monitor suspicious activity as it happens."
+                          : label === "Behavioral analysis"
+                            ? "Identify unusual application behavior."
+                            : label === "Automatic security updates"
+                              ? "Keep detection definitions up to date."
+                              : label === "Threat notifications"
+                                ? "Stay informed about new security alerts."
+                                : "Receive a summary of your security posture."}
+                      </small>
+                    </span>
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      checked={enabled}
+                      onChange={(e) => {
+                        const updated = { ...settings, [label]: e.target.checked }
+                        setSettings(updated)
+                        localStorage.setItem(
+                          "defenx_settings",
+                          JSON.stringify(updated),
+                        )
+                      }}
+                    />
+                  </label>
+                ))}
+              </div>
+              <span className="muted">
+                Changes are applied automatically in this demo.
+              </span>
+            </section>
+            <div className="settings-side">
+              <section className="card tab-panel">
+                <h2>
+                  <Icon name="wallet" />
+                  Defense Balance & Quotas
+                </h2>
+                <p className="muted">
+                  Manage AI computing and telemetry bandwidth quotas.
+                </p>
+                <div className="about-row">
+                  <span>Available Balance</span>
+                  <strong style={{ color: "#a50020" }}>
+                    {balance.toLocaleString()} Credits
+                  </strong>
+                </div>
+                <div className="about-row">
+                  <span>Allocation Value</span>
+                  <strong>${(balance / 10).toFixed(2)} USD</strong>
+                </div>
+                <div className="about-row">
+                  <span>Shield Tier</span>
+                  <strong>Enterprise Pro</strong>
+                </div>
+                <button
+                  className="primary-button"
+                  style={{ marginTop: "14px" }}
+                  onClick={() => setBalanceModalOpen(true)}
+                >
+                  Manage Balance & Top-up <Icon name="arrow" size={17} />
+                </button>
+              </section>
+
+              <section className="card tab-panel">
+                <h2>
+                  <Icon name="sun" />
+                  Appearance
+                </h2>
+                <p className="muted">Choose your workspace color theme.</p>
+                <div className="theme-options">
+                  <button
+                    className={!dark ? "selected" : ""}
+                    aria-pressed={!dark}
+                    onClick={() => {
+                      setDark(false)
+                      localStorage.setItem("defenx_theme", "light")
+                    }}
+                  >
+                    <Icon name="sun" />
+                    Light
+                  </button>
+                  <button
+                    className={dark ? "selected" : ""}
+                    aria-pressed={dark}
+                    onClick={() => {
+                      setDark(true)
+                      localStorage.setItem("defenx_theme", "dark")
+                    }}
+                  >
+                    <Icon name="moon" />
+                    Dark
+                  </button>
+                </div>
+              </section>
+
+              <section className="card tab-panel">
+                <h2>
+                  <Icon name="shield" />
+                  About DefenX
+                </h2>
+                <p className="muted">AI Cybersecurity · Live Interface</p>
+                <div className="about-row">
+                  <span>Workspace</span>
+                  <strong>Active Production Preview</strong>
+                </div>
+                <div className="about-row">
+                  <span>Analyst</span>
+                  <strong>Akhilesh A S</strong>
+                </div>
+                <div className="about-row">
+                  <span>Telemetry State</span>
+                  <strong style={{ color: "#10b981" }}>Live Streaming</strong>
+                </div>
+              </section>
+            </div>
+          </div>
+        </>
+      )}
+    </section>
+  )
 }
+
 function currentTab() {
   return navigation.find(item => item.label.toLowerCase().replace(/ /g, "-") === window.location.hash.slice(1))?.label ?? "Dashboard"
 }
 export default function App() {
   const [active, setActive] = useState(currentTab)
+  const [balance, setBalance] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem("defenx_balance")
+      return saved ? parseInt(saved, 10) : 2450
+    } catch {
+      return 2450
+    }
+  })
+  const [balanceModalOpen, setBalanceModalOpen] = useState(false)
+  const [liveCpu, setLiveCpu] = useState(36)
+  const [liveMemory, setLiveMemory] = useState(58)
+  const [liveDownSpeed, setLiveDownSpeed] = useState(48.2)
+  const [liveUpSpeed, setLiveUpSpeed] = useState(12.6)
+
+  function rechargeBalance(amount: number) {
+    setBalance((prev) => {
+      const next = prev + amount
+      localStorage.setItem("defenx_balance", next.toString())
+      return next
+    })
+  }
+
+  // Live telemetry ticker
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLiveCpu((prev) =>
+        Math.min(62, Math.max(24, +(prev + (Math.random() * 4 - 2)).toFixed(1))),
+      )
+      setLiveMemory((prev) =>
+        Math.min(78, Math.max(46, +(prev + (Math.random() * 2 - 1)).toFixed(1))),
+      )
+      setLiveDownSpeed((prev) =>
+        Math.min(92, Math.max(28, +(prev + (Math.random() * 3 - 1.5)).toFixed(1))),
+      )
+      setLiveUpSpeed((prev) =>
+        Math.min(28, Math.max(8, +(prev + (Math.random() * 1.5 - 0.7)).toFixed(1))),
+      )
+    }, 3500)
+    return () => clearInterval(timer)
+  }, [])
+
+  // Ctrl+K keyboard shortcut
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault()
+        document.querySelector<HTMLInputElement>(".search-wrap input")?.focus()
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [])
+
   useEffect(() => {
     const onHashChange = () => setActive(currentTab())
     window.addEventListener("hashchange", onHashChange)
     return () => window.removeEventListener("hashchange", onHashChange)
   }, [])
+
   useEffect(() => {
     const nav = document.querySelector<HTMLElement>(".sidebar nav")
     const selected = nav?.querySelector<HTMLElement>('[aria-current="page"]')
     if (nav && selected && window.innerWidth <= 700) {
-      nav.scrollTo({ left: selected.offsetLeft - nav.clientWidth / 2 + selected.clientWidth / 2 })
+      nav.scrollTo({
+        left: selected.offsetLeft - nav.clientWidth / 2 + selected.clientWidth / 2,
+      })
     }
   }, [active])
+
   function navigate(tab: string) {
     setActive(tab)
     window.location.hash = tab.toLowerCase().replace(/ /g, "-")
     setModal(null)
+    setBalanceModalOpen(false)
     setProfileOpen(false)
     setNotifications(false)
     window.scrollTo({ top: 0, behavior: "instant" })
   }
+
   const [period, setPeriod] = useState("24h")
   const [modal, setModal] = useState<string | null>(null)
   const [query, setQuery] = useState("")
   const [prompt, setPrompt] = useState("")
-  const [answer, setAnswer] = useState("No unusual activity detected.")
-  const [dark, setDark] = useState(false)
+  const [answer, setAnswer] = useState("No unusual activity detected. Defense shield active.")
+  const [dark, setDark] = useState(() => {
+    try {
+      return localStorage.getItem("defenx_theme") === "dark"
+    } catch {
+      return false
+    }
+  })
   const [profileOpen, setProfileOpen] = useState(false)
   const [notifications, setNotifications] = useState(false)
+
   function askAssistant(e: React.FormEvent) {
     e.preventDefault()
     if (!prompt.trim()) return
-    setAnswer(
-      /network|connection/i.test(prompt)
-        ? "Your network is secure. 1 new device is awaiting review."
-        : /threat|alert/i.test(prompt)
-          ? "3 alerts need review. All suspicious activity is contained."
-          : "Your system is protected. All 5 processes are running normally.",
-    )
+    if (balance < 5) {
+      setAnswer(
+        "Defense balance depleted. Please recharge your DefenX credits to query the AI Security Assistant.",
+      )
+      return
+    }
+    const clean = prompt.toLowerCase()
+    let reply = ""
+    if (
+      clean.includes("network") ||
+      clean.includes("connection") ||
+      clean.includes("traffic") ||
+      clean.includes("ip") ||
+      clean.includes("port")
+    ) {
+      reply = `Network Telemetry: 3 active clusters balanced across US-East, EU, and AP-South. 1 untrusted Wi-Fi device (192.168.1.105) is quarantined. ${liveDownSpeed} Mbps throughput stable.`
+    } else if (
+      clean.includes("threat") ||
+      clean.includes("alert") ||
+      clean.includes("chrome") ||
+      clean.includes("malware") ||
+      clean.includes("virus")
+    ) {
+      reply =
+        "Threat Engine: Suspicious chrome.exe child process isolated at PID 4128. Outbound probe to 185.220.101.42 dropped. Zero data exfiltration detected."
+    } else if (
+      clean.includes("balance") ||
+      clean.includes("credit") ||
+      clean.includes("cost") ||
+      clean.includes("quota")
+    ) {
+      reply = `DefenX Balance Hub: You currently have ${(balance - 5).toLocaleString()} credits available. AI threat analysis consumes 5 credits per query. All containment services funded & operational.`
+    } else if (
+      clean.includes("scan") ||
+      clean.includes("system") ||
+      clean.includes("cpu") ||
+      clean.includes("process")
+    ) {
+      reply = `System Status: CPU load is at ${liveCpu}%, Memory is at ${liveMemory}%. All 5 core system processes (chrome, Code, python, Discord, explorer) are verified against SHA-256 integrity benchmarks.`
+    } else {
+      reply = `AI Assistant Response: Analyzed "${prompt.trim()}". Threat surface model shows normal baseline. Heuristic anomaly index remains at 12.4/100 (Safe). All perimeter firewalls active.`
+    }
+
+    setBalance((prev) => {
+      const next = Math.max(0, prev - 5)
+      localStorage.setItem("defenx_balance", next.toString())
+      return next
+    })
+    setAnswer(reply)
     setPrompt("")
   }
+
   return (
     <div className={`app ${dark ? "dark-mode" : ""}`}>
       <div className="silk silk-one" />
@@ -532,7 +1587,11 @@ export default function App() {
           <button
             className="theme-toggle"
             aria-label="Toggle color theme"
-            onClick={() => setDark(!dark)}
+            onClick={() => {
+              const next = !dark
+              setDark(next)
+              localStorage.setItem("defenx_theme", next ? "dark" : "light")
+            }}
           >
             <Icon name="sun" size={20} />
             <span className={`switch ${dark ? "on" : ""}`}>
@@ -582,6 +1641,19 @@ export default function App() {
             )}
           </div>
           <div className="top-actions">
+            <div className="balance-wrap">
+              <button
+                className="balance-pill"
+                onClick={() => setBalanceModalOpen(true)}
+                title="DefenX Security Balance Hub"
+                aria-label="DefenX Security Balance Hub"
+              >
+                <div className="balance-dot" />
+                <Icon name="wallet" size={17} />
+                <span className="balance-amount">{balance.toLocaleString()}</span>
+                <span className="balance-label">Credits</span>
+              </button>
+            </div>
             <div className="notification-wrap">
               <button
                 className="round-button"
@@ -646,254 +1718,362 @@ export default function App() {
           </div>
         </header>
         <div hidden={active !== "Dashboard"}>
-        <section className="welcome">
-          <div>
-            <h1>Welcome Back, Akhilesh</h1>
-            <p>Your device is secure and under real-time monitoring.</p>
-          </div>
-          <div className="protection">
-            <i className="status-dot" />
-            Live Protection Active
-          </div>
-          <div className="welcome-shield">
-            <Icon name="shield" size={76} />
-          </div>
-        </section>
-        <section className="stats">
-          <article className="stat card">
-            <div className="stat-icon">
-              <Icon name="shield" size={35} />
+          <section className="welcome">
+            <div>
+              <h1>Welcome Back, Akhilesh</h1>
+              <p>Your device is secure and under real-time monitoring.</p>
             </div>
-            <div className="stat-content">
-              <label>Security Status</label>
-              <strong>Protected</strong>
-              <small>No active threats</small>
+            <div className="protection">
+              <i className="status-dot" />
+              Live Protection Active
             </div>
-            <i className="tiny-dot" />
-            <Sparkline />
-          </article>
-          <article className="stat card">
-            <div className="stat-icon">
-              <Icon name="pulse" size={35} />
+            <div className="welcome-shield">
+              <Icon name="shield" size={76} />
             </div>
-            <div className="stat-content">
-              <label>Anomaly Score</label>
-              <strong>
-                12.4 <em>/ 100</em>
-              </strong>
-              <small>Normal behavior</small>
-            </div>
-            <span className="trend">↓ 18%</span>
-            <Sparkline second />
-          </article>
-          <article className="stat card">
-            <div className="stat-icon">
-              <Icon name="cpu" size={32} />
-            </div>
-            <div className="stat-content">
-              <label>CPU Usage</label>
-              <strong>36%</strong>
-              <small>Normal</small>
-            </div>
-            <Bars />
-          </article>
-          <article className="stat card">
-            <div className="stat-icon">
-              <Icon name="database" size={33} />
-            </div>
-            <div className="stat-content">
-              <label>Memory Usage</label>
-              <strong>58%</strong>
-              <small>Normal</small>
-            </div>
-            <Bars variant={2} />
-          </article>
-        </section>
-        <div className="dashboard-grid">
-          <section className="card performance">
-            <div className="section-heading">
-              <h2>
-                <span className="bar-icon">
-                  <i />
-                  <i />
-                  <i />
-                  <i />
+          </section>
+          <section className="stats">
+            <article className="stat card">
+              <div className="stat-icon">
+                <Icon name="shield" size={35} />
+              </div>
+              <div className="stat-content">
+                <label>Security Status</label>
+                <strong>Protected</strong>
+                <small>No active threats</small>
+              </div>
+              <i className="tiny-dot" />
+              <Sparkline />
+            </article>
+            <article className="stat card">
+              <div className="stat-icon">
+                <Icon name="pulse" size={35} />
+              </div>
+              <div className="stat-content">
+                <label>Anomaly Score</label>
+                <strong>
+                  12.4 <em>/ 100</em>
+                </strong>
+                <small>Normal behavior</small>
+              </div>
+              <span className="trend">↓ 18%</span>
+              <Sparkline second />
+            </article>
+            <article className="stat card">
+              <div className="stat-icon">
+                <Icon name="cpu" size={32} />
+              </div>
+              <div className="stat-content">
+                <label>CPU Usage</label>
+                <strong>{liveCpu}%</strong>
+                <small>Live telemetry</small>
+              </div>
+              <Bars />
+            </article>
+            <article className="stat card">
+              <div className="stat-icon">
+                <Icon name="database" size={33} />
+              </div>
+              <div className="stat-content">
+                <label>Memory Usage</label>
+                <strong>{liveMemory}%</strong>
+                <small>Live telemetry</small>
+              </div>
+              <Bars variant={2} />
+            </article>
+          </section>
+          <div className="dashboard-grid">
+            <section className="card performance">
+              <div className="section-heading">
+                <h2>
+                  <span className="bar-icon">
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  System Performance
+                </h2>
+                <div className="periods">
+                  {["1h", "6h", "24h", "7d"].map((p) => (
+                    <button
+                      className={period === p ? "selected" : ""}
+                      onClick={() => setPeriod(p)}
+                      key={p}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="legend">
+                <span>
+                  <i className="red" />
+                  CPU
                 </span>
-                System Performance
-              </h2>
-              <div className="periods">
-                {["1h", "6h", "24h", "7d"].map((p) => (
+                <span>
+                  <i className="gold" />
+                  Memory
+                </span>
+                <span>
+                  <i className="wine" />
+                  Network
+                </span>
+              </div>
+              <PerformanceChart period={period} />
+            </section>
+            <section className="card threats">
+              <div className="section-heading">
+                <h2>
+                  <Icon name="alert" size={29} />
+                  Threat Alerts
+                </h2>
+                <button
+                  className="text-button"
+                  onClick={() => setModal("All threat alerts")}
+                >
+                  View All <Icon name="arrow" size={17} />
+                </button>
+              </div>
+              <div className="alert-list">
+                {alerts.map((a) => (
                   <button
-                    className={period === p ? "selected" : ""}
-                    onClick={() => setPeriod(p)}
-                    key={p}
+                    key={a.title}
+                    className={`alert-row ${a.type}`}
+                    onClick={() => setModal(a.title)}
                   >
-                    {p}
+                    <i className="alert-line" />
+                    <span className="alert-symbol">{a.symbol}</span>
+                    <span className="alert-text">
+                      <strong>{a.title}</strong>
+                      <small>{a.detail}</small>
+                    </span>
+                    <time>{a.time}</time>
                   </button>
                 ))}
               </div>
-            </div>
-            <div className="legend">
-              <span>
-                <i className="red" />
-                CPU
-              </span>
-              <span>
-                <i className="gold" />
-                Memory
-              </span>
-              <span>
-                <i className="wine" />
-                Network
-              </span>
-            </div>
-            <PerformanceChart period={period} />
-          </section>
-          <section className="card threats">
-            <div className="section-heading">
-              <h2>
-                <Icon name="alert" size={29} />
-                Threat Alerts
-              </h2>
-              <button
-                className="text-button"
-                onClick={() => setModal("All threat alerts")}
-              >
-                View All <Icon name="arrow" size={17} />
-              </button>
-            </div>
-            <div className="alert-list">
-              {alerts.map((a) => (
+            </section>
+            <section className="card processes">
+              <div className="section-heading">
+                <h2>
+                  <Icon name="layers" size={28} />
+                  Top Processes
+                </h2>
                 <button
-                  key={a.title}
-                  className={`alert-row ${a.type}`}
-                  onClick={() => setModal(a.title)}
+                  className="text-button"
+                  onClick={() => setModal("All running processes")}
                 >
-                  <i className="alert-line" />
-                  <span className="alert-symbol">{a.symbol}</span>
-                  <span className="alert-text">
-                    <strong>{a.title}</strong>
-                    <small>{a.detail}</small>
-                  </span>
-                  <time>{a.time}</time>
+                  View All <Icon name="arrow" size={17} />
                 </button>
-              ))}
-            </div>
-          </section>
-          <section className="card processes">
-            <div className="section-heading">
-              <h2>
-                <Icon name="layers" size={28} />
-                Top Processes
-              </h2>
-              <button
-                className="text-button"
-                onClick={() => setModal("All running processes")}
-              >
-                View All <Icon name="arrow" size={17} />
-              </button>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Process</th>
-                  <th>CPU</th>
-                  <th>Memory</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {processes.map((p) => (
-                  <tr key={p.name}>
-                    <td>
-                      <span className={`process-logo ${p.logo}`}>
-                        {p.letter}
-                      </span>
-                      {p.name}
-                    </td>
-                    <td>{p.cpu}</td>
-                    <td>{p.memory}</td>
-                    <td>
-                      <span className="normal">
-                        <i />
-                        Normal
-                      </span>
-                    </td>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Process</th>
+                    <th>CPU</th>
+                    <th>Memory</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-          <section className="card assistant">
-            <div className="section-heading">
-              <h2>
-                <Icon name="sparkles" size={27} />
-                AI Security Assistant
-              </h2>
-              <span className="beta">Beta</span>
-            </div>
-            <div className="assistant-message">
-              <div className="bot-avatar">
-                <Icon name="bot" size={45} />
+                </thead>
+                <tbody>
+                  {processes.map((p) => (
+                    <tr key={p.name}>
+                      <td>
+                        <span className={`process-logo ${p.logo}`}>
+                          {p.letter}
+                        </span>
+                        {p.name}
+                      </td>
+                      <td>{p.cpu}</td>
+                      <td>{p.memory}</td>
+                      <td>
+                        <span className="normal">
+                          <i />
+                          Normal
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+            <section className="card assistant">
+              <div className="section-heading">
+                <h2>
+                  <Icon name="sparkles" size={27} />
+                  AI Security Assistant
+                </h2>
+                <span className="beta">5 Cr/query</span>
               </div>
-              <div className="speech">
-                <strong>Your system looks good!</strong>
-                <p>{answer}</p>
+              <div className="assistant-message">
+                <div className="bot-avatar">
+                  <Icon name="bot" size={45} />
+                </div>
+                <div className="speech">
+                  <strong>DefenX Neural Engine</strong>
+                  <p>{answer}</p>
+                </div>
               </div>
-            </div>
-            <form onSubmit={askAssistant} className="assistant-input">
-              <Icon name="sparkles" size={22} />
-              <input
-                placeholder="Ask anything..."
-                aria-label="Ask the security assistant"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-              />
-              <button aria-label="Send message">
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="m4 4 17 8-17 8 4-8Zm4 8h13" />
-                </svg>
-              </button>
-            </form>
-          </section>
-          <section className="card network">
-            <div className="section-heading">
-              <h2>
-                <Icon name="globe" size={27} />
-                Network Activity
-              </h2>
-              <span className="live">
-                <i />
-                Live
-              </span>
-            </div>
-            <NetworkChart />
-            <div className="network-speeds">
-              <span>
-                <b>↓</b>48.2 Mbps
-              </span>
-              <span>
-                <b>↑</b>12.6 Mbps
-              </span>
-            </div>
-          </section>
-        </div>
+              <form onSubmit={askAssistant} className="assistant-input">
+                <Icon name="sparkles" size={22} />
+                <input
+                  placeholder="Ask about threats, network, processes, or balance..."
+                  aria-label="Ask the security assistant"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                />
+                <button aria-label="Send message">
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="m4 4 17 8-17 8 4-8Zm4 8h13" />
+                  </svg>
+                </button>
+              </form>
+            </section>
+            <section className="card network">
+              <div className="section-heading">
+                <h2>
+                  <Icon name="globe" size={27} />
+                  Network Activity
+                </h2>
+                <span className="live">
+                  <i />
+                  Live Stream
+                </span>
+              </div>
+              <NetworkChart />
+              <div className="network-speeds">
+                <span>
+                  <b>↓</b>
+                  {liveDownSpeed} Mbps
+                </span>
+                <span>
+                  <b>↑</b>
+                  {liveUpSpeed} Mbps
+                </span>
+              </div>
+            </section>
+          </div>
         </div>
         <div hidden={active === "Dashboard"}>
-          <TabContent active={active} dark={dark} setDark={setDark} openDetail={setModal}/>
+          <TabContent
+            active={active}
+            dark={dark}
+            setDark={setDark}
+            openDetail={setModal}
+            balance={balance}
+            rechargeBalance={rechargeBalance}
+            liveCpu={liveCpu}
+            liveMemory={liveMemory}
+            liveDownSpeed={liveDownSpeed}
+            liveUpSpeed={liveUpSpeed}
+            setBalanceModalOpen={setBalanceModalOpen}
+          />
         </div>
         <footer>
           DefenX Security Platform{" "}
           <span>All systems operational · Last synced just now</span>
         </footer>
       </main>
+
+      {balanceModalOpen && (
+        <div
+          className="modal-overlay"
+          onClick={() => setBalanceModalOpen(false)}
+        >
+          <section
+            className="modal card balance-hub-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="DefenX Security Balance Hub"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="close-modal"
+              aria-label="Close dialog"
+              onClick={() => setBalanceModalOpen(false)}
+            >
+              ×
+            </button>
+            <div className="modal-icon">
+              <Icon name="wallet" size={32} />
+            </div>
+            <h2>DefenX Security Balance Hub</h2>
+            <p>
+              Real-time defense credits allocated for neural threat reasoning,
+              isolated sandboxing, and network load balancer traffic.
+            </p>
+
+            <div className="balance-hero">
+              <div className="balance-hero-text">
+                <h3>Available Defense Balance</h3>
+                <div className="big-credits">
+                  {balance.toLocaleString()} <span>Credits</span>
+                </div>
+                <p>≈ ${(balance / 10).toFixed(2)} USD allocated power</p>
+              </div>
+              <div className="balance-hero-badge">
+                <span>Shield Health: 98.4%</span>
+              </div>
+            </div>
+
+            <div className="balance-breakdown">
+              <div className="breakdown-item">
+                <span>AI Inference</span>
+                <strong>5 Cr / query</strong>
+              </div>
+              <div className="breakdown-item">
+                <span>Traffic Inspection</span>
+                <strong>2 Cr / GB</strong>
+              </div>
+              <div className="breakdown-item">
+                <span>Deep Sandbox</span>
+                <strong>10 Cr / scan</strong>
+              </div>
+            </div>
+
+            <div className="recharge-section">
+              <h4>Instant Credit Recharge</h4>
+              <div className="recharge-grid">
+                <button
+                  className="recharge-btn"
+                  onClick={() => rechargeBalance(250)}
+                >
+                  <strong>+250 Credits</strong>
+                  <small>$25 · Instant</small>
+                </button>
+                <button
+                  className="recharge-btn"
+                  onClick={() => rechargeBalance(1000)}
+                >
+                  <strong>+1,000 Credits</strong>
+                  <small>$90 · Save 10%</small>
+                </button>
+                <button
+                  className="recharge-btn"
+                  onClick={() => rechargeBalance(5000)}
+                >
+                  <strong>+5,000 Credits</strong>
+                  <small>$400 · Enterprise</small>
+                </button>
+              </div>
+            </div>
+
+            <button
+              className="primary-button"
+              onClick={() => setBalanceModalOpen(false)}
+            >
+              Done <Icon name="arrow" size={18} />
+            </button>
+          </section>
+        </div>
+      )}
+
       {modal && (
         <div
           className="modal-overlay"
@@ -1012,3 +2192,4 @@ export default function App() {
     </div>
   )
 }
+
