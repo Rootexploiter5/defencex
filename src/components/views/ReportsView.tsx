@@ -91,7 +91,8 @@ export function ReportsView({
         ["CPU Usage", `${telemetry?.cpuUsage || 0}%`],
         [
           "Memory Usage",
-          `${telemetry?.memoryUsage || 0}% (${telemetry?.usedMemoryGB || 0} GB used of ${telemetry?.totalMemoryGB || 0
+          `${telemetry?.memoryUsage || 0}% (${telemetry?.usedMemoryGB || 0} GB used of ${
+            telemetry?.totalMemoryGB || 0
           } GB)`,
         ],
         [

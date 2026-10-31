@@ -39,7 +39,7 @@ export function LiveMonitorView({
 
   return (
     <>
-      { }
+      {}
       <div className="tab-summary">
         <article className="card summary-card">
           <div className="stat-icon">
@@ -88,7 +88,7 @@ export function LiveMonitorView({
         </article>
       </div>
 
-      { }
+      {}
       <section className="card tab-panel monitor-panel">
         <div className="section-heading">
           <h2>
@@ -130,7 +130,7 @@ export function LiveMonitorView({
         <PerformanceChart period={period} history={history} />
       </section>
 
-      { }
+      {}
       <section className="card tab-panel">
         <div className="section-heading">
           <h2>
@@ -242,7 +242,7 @@ export function LiveMonitorView({
         </div>
       </section>
 
-      { }
+      {}
       <section className="card tab-panel">
         <div className="section-heading">
           <h2>

@@ -104,7 +104,7 @@ export function TopBar({
       </div>
 
       <div className="top-actions">
-        { }
+        {}
         <button
           onClick={toggleSafeMode}
           title={
@@ -139,7 +139,7 @@ export function TopBar({
           {safeMode ? "Safe Containment Mode (Dry-Run)" : "Live OS Enforcement"}
         </button>
 
-        { }
+        {}
         <button
           className="round-button"
           aria-label="AI Threat Assistant"
@@ -150,7 +150,7 @@ export function TopBar({
           <Icon name="bot" />
         </button>
 
-        { }
+        {}
         <div className="balance-wrap">
           <button
             className="balance-pill"
@@ -165,7 +165,7 @@ export function TopBar({
           </button>
         </div>
 
-        { }
+        {}
         <div className="notification-wrap">
           <button
             className="round-button"
@@ -224,7 +224,7 @@ export function TopBar({
           <Icon name="settings" />
         </button>
 
-        { }
+        {}
         <div className="profile-wrap">
           <button
             className="profile"

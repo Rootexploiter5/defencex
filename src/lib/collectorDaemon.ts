@@ -89,7 +89,7 @@ function generateDefaultTelemetry(): TelemetrySnapshot {
   let username = "Analyst"
   try {
     username = os.userInfo().username || "Analyst"
-  } catch { }
+  } catch {}
 
   return {
     cpuUsage: 16,
@@ -372,7 +372,7 @@ class CollectorDaemon {
       let username = "Analyst"
       try {
         username = os.userInfo().username || "Analyst"
-      } catch { }
+      } catch {}
 
       daemonState.cachedTelemetry = {
         cpuUsage,
@@ -536,7 +536,7 @@ class CollectorDaemon {
           isSuspicious: [4444, 8888, 1337, 31337].includes(c.RemotePort),
         }))
       }
-    } catch { }
+    } catch {}
 
     return daemonState.cachedConnections
   }
@@ -694,7 +694,7 @@ class CollectorDaemon {
     })
 
     // Immediately trigger a poll
-    this.pollTelemetry().catch(() => { })
+    this.pollTelemetry().catch(() => {})
 
     return {
       success: true,

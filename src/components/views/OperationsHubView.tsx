@@ -52,7 +52,7 @@ export function OperationsHubView({
 
       <div className="tab-columns settings-columns">
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          { }
+          {}
           <section className="card tab-panel">
             <h2>
               <Icon name="shield" />
@@ -87,7 +87,7 @@ export function OperationsHubView({
                           "defenx_settings",
                           JSON.stringify(updated),
                         )
-                      } catch { }
+                      } catch {}
                     }}
                   />
                 </label>
@@ -95,7 +95,7 @@ export function OperationsHubView({
             </div>
           </section>
 
-          { }
+          {}
           <section className="card tab-panel">
             <div className="section-heading">
               <h2>
@@ -142,7 +142,7 @@ export function OperationsHubView({
         </div>
 
         <div className="settings-side">
-          { }
+          {}
           <section className="card tab-panel">
             <h2>
               <Icon name="wallet" />
@@ -171,7 +171,7 @@ export function OperationsHubView({
             </button>
           </section>
 
-          { }
+          {}
           <section className="card tab-panel">
             <h2>
               <Icon name="sun" />
@@ -198,7 +198,7 @@ export function OperationsHubView({
             </div>
           </section>
 
-          { }
+          {}
           <section className="card tab-panel">
             <h2>
               <Icon name="shield" />

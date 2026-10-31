@@ -57,7 +57,7 @@ export function ThreatCenterView({
 
   return (
     <>
-      { }
+      {}
       <div className="tab-summary">
         <article className="card summary-card">
           <div className="stat-icon">
@@ -93,7 +93,7 @@ export function ThreatCenterView({
         </article>
       </div>
 
-      { }
+      {}
       <section className="card tab-panel">
         <div className="section-heading">
           <h2>
@@ -123,7 +123,7 @@ export function ThreatCenterView({
           </div>
         </div>
 
-        { }
+        {}
         <div className="filter-chips" aria-label="Filter alerts">
           {["All", "Awaiting review", "Reviewed"].map((f) => (
             <button
@@ -137,7 +137,7 @@ export function ThreatCenterView({
           ))}
         </div>
 
-        { }
+        {}
         <div className="detailed-alerts">
           {filteredAlerts.map((a) => {
             const badge = getSeverityBadgeColor(a.severity)
@@ -225,7 +225,7 @@ export function ThreatCenterView({
                     </div>
                   )}
 
-                  { }
+                  {}
                   <div
                     className="alert-controls"
                     style={{ flexWrap: "wrap", gap: "10px" }}
@@ -237,7 +237,7 @@ export function ThreatCenterView({
                       View evidence <Icon name="arrow" size={16} />
                     </button>
 
-                    { }
+                    {}
                     {a.pid && (
                       <button
                         className="secondary-button"
@@ -256,12 +256,13 @@ export function ThreatCenterView({
                         <Icon name="shield" size={15} />
                         {a.status === "Quarantined"
                           ? "Process Quarantined"
-                          : `Quarantine PID ${a.pid} (${safeMode ? "Dry-Run" : "Stop-Process"
-                          })`}
+                          : `Quarantine PID ${a.pid} (${
+                              safeMode ? "Dry-Run" : "Stop-Process"
+                            })`}
                       </button>
                     )}
 
-                    { }
+                    {}
                     {a.remoteIp && (
                       <button
                         className="secondary-button"

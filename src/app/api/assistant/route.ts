@@ -52,10 +52,11 @@ export async function POST(request: Request) {
       clean.includes("port")
     ) {
       const suspiciousConns = connections.filter((c) => c.isSuspicious)
-      answer = `Live Network Intelligence: Host "${telemetry.hostname}" is communicating over ${primaryIface?.name || "Interface"} (${primaryIface?.ip || "Unknown IP"}). Currently tracking ${connections.length} active TCP connections. ${suspiciousConns.length > 0
+      answer = `Live Network Intelligence: Host "${telemetry.hostname}" is communicating over ${primaryIface?.name || "Interface"} (${primaryIface?.ip || "Unknown IP"}). Currently tracking ${connections.length} active TCP connections. ${
+        suspiciousConns.length > 0
           ? `⚠️ Found ${suspiciousConns.length} socket(s) flagged as suspicious!`
           : "Perimeter routes verified."
-        } Measured edge latency: ${telemetry.networkLatencyMs}ms.`
+      } Measured edge latency: ${telemetry.networkLatencyMs}ms.`
     } else if (
       clean.includes("threat") ||
       clean.includes("alert") ||
@@ -66,8 +67,9 @@ export async function POST(request: Request) {
     ) {
       if (activeThreats.length > 0) {
         const top = activeThreats[0]
-        answer = `Threat Intelligence Engine: Identified ${activeThreats.length} unreviewed alert(s) on ${telemetry.hostname}. Highest priority: "${top.title}" [${top.mitreTactic}] (${top.detail}). Behavioral Anomaly Index is ${telemetry.anomalyScore}/100. Safe-mode containment is currently ${isSafeMode() ? "ENABLED (Dry-run)" : "LIVE ENFORCEMENT"
-          }.`
+        answer = `Threat Intelligence Engine: Identified ${activeThreats.length} unreviewed alert(s) on ${telemetry.hostname}. Highest priority: "${top.title}" [${top.mitreTactic}] (${top.detail}). Behavioral Anomaly Index is ${telemetry.anomalyScore}/100. Safe-mode containment is currently ${
+          isSafeMode() ? "ENABLED (Dry-run)" : "LIVE ENFORCEMENT"
+        }.`
       } else {
         answer = `Threat Intelligence Engine: Zero anomalous behavioral vectors currently unreviewed. System integrity on ${telemetry.hostname} verified with anomaly rating at ${telemetry.anomalyScore}/100.`
       }

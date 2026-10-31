@@ -31,7 +31,7 @@ export function ForensicsView({ events, telemetry }: ForensicsViewProps) {
 
   return (
     <>
-      { }
+      {}
       <div className="tab-summary">
         <article className="card summary-card">
           <div className="stat-icon">
@@ -67,7 +67,7 @@ export function ForensicsView({ events, telemetry }: ForensicsViewProps) {
         </article>
       </div>
 
-      { }
+      {}
       <section className="card tab-panel">
         <div className="section-heading">
           <h2>
@@ -156,8 +156,8 @@ export function ForensicsView({ events, telemetry }: ForensicsViewProps) {
                     <span
                       className={
                         e.result === "Review" ||
-                          e.status === "Warning" ||
-                          e.status === "Blocked"
+                        e.status === "Warning" ||
+                        e.status === "Blocked"
                           ? "review-badge"
                           : "normal"
                       }

@@ -77,7 +77,7 @@ export function AssistantModal({
           </div>
         </div>
 
-        { }
+        {}
         <div
           style={{
             display: "flex",
@@ -122,7 +122,7 @@ export function AssistantModal({
           </span>
         </div>
 
-        { }
+        {}
         <div
           style={{
             background:
@@ -167,7 +167,7 @@ export function AssistantModal({
           </p>
         </div>
 
-        { }
+        {}
         <div style={{ marginBottom: "16px" }}>
           <small
             style={{
@@ -206,7 +206,7 @@ export function AssistantModal({
           </div>
         </div>
 
-        { }
+        {}
         <div style={{ display: "flex", gap: "8px" }}>
           <input
             style={{

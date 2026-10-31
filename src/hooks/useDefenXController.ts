@@ -156,7 +156,7 @@ export function useDefenXController() {
     setDarkState(value)
     try {
       localStorage.setItem("defenx_theme", value ? "dark" : "light")
-    } catch { }
+    } catch {}
   }, [])
 
   const rechargeBalance = useCallback((amount: number) => {
@@ -166,7 +166,7 @@ export function useDefenXController() {
         amount
       try {
         localStorage.setItem("defenx_balance", next.toString())
-      } catch { }
+      } catch {}
       return next
     })
     setNotice(`Added ${amount} credits to DefenX security operations balance`)
@@ -185,7 +185,7 @@ export function useDefenXController() {
         )
           setSafeModeState(json.safeMode)
       }
-    } catch { }
+    } catch {}
   }, [])
   const fetchProcesses = useCallback(async () => {
     try {
@@ -195,7 +195,7 @@ export function useDefenXController() {
       if (json.success && json.data) {
         setProcesses(json.data)
       }
-    } catch { }
+    } catch {}
   }, [])
   const fetchNetwork = useCallback(async () => {
     try {
@@ -207,7 +207,7 @@ export function useDefenXController() {
         if (json.connections) setConnections(json.connections)
         if (json.loadBalancerNodes) setLoadBalancerNodes(json.loadBalancerNodes)
       }
-    } catch { }
+    } catch {}
   }, [])
   const fetchAlerts = useCallback(async () => {
     try {
@@ -222,7 +222,7 @@ export function useDefenXController() {
         )
           setSafeModeState(json.safeMode)
       }
-    } catch { }
+    } catch {}
   }, [])
   const fetchForensics = useCallback(async () => {
     try {
@@ -232,7 +232,7 @@ export function useDefenXController() {
       if (json.success && json.data) {
         setEvents(json.data)
       }
-    } catch { }
+    } catch {}
   }, [])
 
   const refreshAll = useCallback(() => {
@@ -279,12 +279,12 @@ export function useDefenXController() {
         setAlerts((prev) =>
           prev.map((a) =>
             a.id ===
-              alertId
+            alertId
               ? {
-                ...a,
-                reviewed: !a.reviewed,
-                status: !a.reviewed ? "Reviewed" : "Active",
-              }
+                  ...a,
+                  reviewed: !a.reviewed,
+                  status: !a.reviewed ? "Reviewed" : "Active",
+                }
               : a,
           ),
         )
@@ -297,7 +297,7 @@ export function useDefenXController() {
         if (json.success) {
           fetchForensics()
         }
-      } catch { }
+      } catch {}
     },
     [fetchForensics],
   )
@@ -317,15 +317,17 @@ export function useDefenXController() {
         const json = await res.json()
         if (json.success) {
           setNotice(
-            `Quarantine dispatched for PID ${pid} (${json.result?.mode ||
-            "safe-mode"
+            `Quarantine dispatched for PID ${pid} (${
+              json.result?.mode ||
+              "safe-mode"
             })`,
           )
           refreshAll()
         } else {
           setNotice(
-            `Quarantine failed: ${json.error ||
-            json.result?.message
+            `Quarantine failed: ${
+              json.error ||
+              json.result?.message
             }`,
           )
         }
@@ -346,15 +348,17 @@ export function useDefenXController() {
         const json = await res.json()
         if (json.success) {
           setNotice(
-            `Firewall block rule created for ${remoteIp} (${json.result?.mode ||
-            "safe-mode"
+            `Firewall block rule created for ${remoteIp} (${
+              json.result?.mode ||
+              "safe-mode"
             })`,
           )
           refreshAll()
         } else {
           setNotice(
-            `Block failed: ${json.error ||
-            json.result?.message
+            `Block failed: ${
+              json.error ||
+              json.result?.message
             }`,
           )
         }
@@ -375,12 +379,13 @@ export function useDefenXController() {
       if (json.success) {
         setSafeModeState(json.safeMode)
         setNotice(
-          `Containment guard set to ${json.safeMode ? "SAFE-MODE (Dry-Run)" : "LIVE ENFORCEMENT"
+          `Containment guard set to ${
+            json.safeMode ? "SAFE-MODE (Dry-Run)" : "LIVE ENFORCEMENT"
           }`,
         )
         fetchForensics()
       }
-    } catch { }
+    } catch {}
   }, [fetchForensics])
   const triggerAttack = useCallback(
     async (type: AttackSimulationType) => {
@@ -422,7 +427,7 @@ export function useDefenXController() {
             const next = Math.max(0, prev - 5)
             try {
               localStorage.setItem("defenx_balance", next.toString())
-            } catch { }
+            } catch {}
             return next
           })
           fetchForensics()

@@ -74,7 +74,7 @@ export function NeuralSandboxView({
 
   return (
     <>
-      { }
+      {}
       <div className="tab-summary">
         <article className="card summary-card">
           <div className="stat-icon">
@@ -118,7 +118,7 @@ export function NeuralSandboxView({
         </article>
       </div>
 
-      { }
+      {}
       <div className="tab-columns">
         <section className="card tab-panel">
           <div className="section-heading">
@@ -132,8 +132,9 @@ export function NeuralSandboxView({
             <div
               className="score-ring"
               style={{
-                background: `conic-gradient(#870e23 0deg ${(telemetry?.anomalyScore ?? 15) * 3.6
-                  }deg, #e1d7c5 ${(telemetry?.anomalyScore ?? 15) * 3.6}deg 360deg)`,
+                background: `conic-gradient(#870e23 0deg ${
+                  (telemetry?.anomalyScore ?? 15) * 3.6
+                }deg, #e1d7c5 ${(telemetry?.anomalyScore ?? 15) * 3.6}deg 360deg)`,
               }}
             >
               <strong>
@@ -228,7 +229,7 @@ export function NeuralSandboxView({
         </section>
       </div>
 
-      { }
+      {}
       <section
         className="card tab-panel"
         style={{
@@ -278,7 +279,7 @@ export function NeuralSandboxView({
             gap: "14px",
           }}
         >
-          { }
+          {}
           <div
             style={{
               padding: "18px",
@@ -341,7 +342,7 @@ export function NeuralSandboxView({
             </button>
           </div>
 
-          { }
+          {}
           <div
             style={{
               padding: "18px",
@@ -405,7 +406,7 @@ export function NeuralSandboxView({
             </button>
           </div>
 
-          { }
+          {}
           <div
             style={{
               padding: "18px",
@@ -471,7 +472,7 @@ export function NeuralSandboxView({
         </div>
       </section>
 
-      { }
+      {}
       <section className="card tab-panel">
         <h2>
           <Icon name="layers" />

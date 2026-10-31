@@ -45,8 +45,9 @@ export function setSafeMode(enabled: boolean): boolean {
     action: "SAFE_MODE_TOGGLE",
     target: "Containment Guard",
     status: "Success",
-    event: `Containment enforcement changed to ${enabled ? "SAFE-MODE (Dry-Run)" : "LIVE ENFORCEMENT"
-      }`,
+    event: `Containment enforcement changed to ${
+      enabled ? "SAFE-MODE (Dry-Run)" : "LIVE ENFORCEMENT"
+    }`,
     source: "containmentEngine",
     result: enabled ? "Normal" : "Verified",
   })

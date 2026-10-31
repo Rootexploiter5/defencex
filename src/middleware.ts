@@ -83,7 +83,7 @@ export function middleware(request: NextRequest) {
             },
           )
         }
-      } catch { }
+      } catch {}
     }
   }
 

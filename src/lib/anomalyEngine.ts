@@ -83,47 +83,47 @@ export interface DangerousCmdPattern {
 }
 
 const DANGEROUS_CMD_PATTERNS: DangerousCmdPattern[] = [
-  {
-    regex: /-(?:enc|encodedcommand)\s+[a-z0-9+/=]{16,}/i,
-    reason: "Encoded Base64 PowerShell execution",
-    score: 45,
-  },
-  {
-    regex: /frombase64string/i,
-    reason: "In-memory Base64 decoding",
-    score: 35,
-  },
-  {
-    regex: /iex\s*\(|invoke-expression/i,
-    reason: "Dynamic expression evaluation (IEX)",
-    score: 35,
-  },
-  {
-    regex: /invoke-webrequest|downloadstring|downloadfile/i,
-    reason: "Web cradle download execution",
-    score: 40,
-  },
-  {
-    regex: /-w\s+hidden|-windowstyle\s+hidden/i,
-    reason: "Hidden window defense evasion",
-    score: 25,
-  },
-  {
-    regex: /vssadmin\s+delete\s+shadows/i,
-    reason: "Ransomware shadow copy deletion",
-    score: 60,
-  },
-  {
-    regex: /bcdedit.*recoveryenabled\s+no/i,
-    reason: "Tampering with Windows boot recovery",
-    score: 55,
-  },
-  {
-    regex: /bypass\s+-nop/i,
-    reason: "ExecutionPolicy bypass with no-profile",
-    score: 20,
-  },
-]
+    {
+      regex: /-(?:enc|encodedcommand)\s+[a-z0-9+/=]{16,}/i,
+      reason: "Encoded Base64 PowerShell execution",
+      score: 45,
+    },
+    {
+      regex: /frombase64string/i,
+      reason: "In-memory Base64 decoding",
+      score: 35,
+    },
+    {
+      regex: /iex\s*\(|invoke-expression/i,
+      reason: "Dynamic expression evaluation (IEX)",
+      score: 35,
+    },
+    {
+      regex: /invoke-webrequest|downloadstring|downloadfile/i,
+      reason: "Web cradle download execution",
+      score: 40,
+    },
+    {
+      regex: /-w\s+hidden|-windowstyle\s+hidden/i,
+      reason: "Hidden window defense evasion",
+      score: 25,
+    },
+    {
+      regex: /vssadmin\s+delete\s+shadows/i,
+      reason: "Ransomware shadow copy deletion",
+      score: 60,
+    },
+    {
+      regex: /bcdedit.*recoveryenabled\s+no/i,
+      reason: "Tampering with Windows boot recovery",
+      score: 55,
+    },
+    {
+      regex: /bypass\s+-nop/i,
+      reason: "ExecutionPolicy bypass with no-profile",
+      score: 20,
+    },
+  ]
 
 export interface EvaluatedHostBehavior {
   compositeScore: number

@@ -38,7 +38,7 @@ export function NetworkTopologyView({
 
   return (
     <>
-      { }
+      {}
       <div className="tab-summary">
         <article className="card summary-card">
           <div className="stat-icon">
@@ -78,7 +78,7 @@ export function NetworkTopologyView({
         </article>
       </div>
 
-      { }
+      {}
       <div className="tab-columns">
         <section className="card tab-panel traffic-panel">
           <div className="section-heading">
@@ -120,7 +120,7 @@ export function NetworkTopologyView({
         </section>
       </div>
 
-      { }
+      {}
       <section className="card tab-panel load-balancer-panel">
         <div className="section-heading">
           <h2>
@@ -168,7 +168,7 @@ export function NetworkTopologyView({
         </div>
       </section>
 
-      { }
+      {}
       <section className="card tab-panel">
         <h2>
           <Icon name="cpu" />
@@ -213,7 +213,7 @@ export function NetworkTopologyView({
         </div>
       </section>
 
-      { }
+      {}
       <section className="card tab-panel">
         <h2>
           <Icon name="globe" />

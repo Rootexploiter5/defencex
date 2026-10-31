@@ -80,7 +80,7 @@ export function Sidebar({
             setDark(next)
             try {
               localStorage.setItem("defenx_theme", next ? "dark" : "light")
-            } catch { }
+            } catch {}
           }}
         >
           <Icon name="sun" size={20} />
