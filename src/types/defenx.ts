@@ -157,8 +157,6 @@ export interface ContainmentResult {
   timestamp: number
 }
 
-export type AttackSimulationType = "lolbin_powershell" | "ransomware_io" | "c2_beacon"
-
 export interface MitreTechnique {
   id: string
   tactic: string

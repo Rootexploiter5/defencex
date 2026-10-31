@@ -94,12 +94,11 @@ export async function POST(request: Request) {
       )[0]
       answer = `Behavioral ML Engine: Model status is "${telemetry.baselineStatus.toUpperCase()}". Composite Anomaly Index is ${telemetry.anomalyScore}/100. Primary driver: ${topFeature?.feature || "CPU"} (Z-Score: ${topFeature?.zScore ?? 0}, Impact: ${topFeature?.impact ?? 0}% - ${topFeature?.detail || ""}).`
     } else if (
-      clean.includes("balance") ||
-      clean.includes("credit") ||
-      clean.includes("quota") ||
-      clean.includes("cost")
+      clean.includes("status") ||
+      clean.includes("health") ||
+      clean.includes("posture")
     ) {
-      answer = `DefenX Security Quota: Defense operations balance is active for real-time AI heuristics, deep packet inspection, and containment dispatch. 5 credits deducted for this neural telemetry inference.`
+      answer = `DefenX Real-Time Security Engine: Host "${telemetry.hostname}" is operating with Anomaly Score ${telemetry.anomalyScore}/100. ${alerts.length} active alerts logged. Safe-mode containment is ${isSafeMode() ? "ENABLED (Dry-Run)" : "LIVE ENFORCEMENT"}.`
     } else {
       answer = `DefenX Neural Analyst: Inspected "${prompt}". Active telemetry on ${telemetry.hostname} (${telemetry.platform} ${telemetry.arch}) shows CPU at ${telemetry.cpuUsage}%, RAM at ${telemetry.memoryUsage}%, and ${processes.length} tracked processes. Anomaly score remains at ${telemetry.anomalyScore}/100 with baseline state "${telemetry.baselineStatus}". Security perimeter is healthy.`
     }

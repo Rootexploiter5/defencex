@@ -87,102 +87,31 @@ function readJsonFile<T>(filePath: string, fallback: T): T {
   return fallback
 }
 
-// Default initial alerts for security monitoring
+// Default initial alerts for security monitoring (clean real-time start)
 function getInitialAlerts(): ThreatAlert[] {
-  const now = Date.now()
-  return [
-    {
-      id: "alert-baseline-init",
-      timestamp: now - 120000,
-      time: "2m ago",
-      title: "Host Behavioral Anomaly Baseline Initialized",
-      detail:
-        "Adaptive EWMA baselining active across CPU, memory delta, and network sockets",
-      severity: "Low",
-      type: "info",
-      symbol: "i",
-      status: "Reviewed",
-      mitreTactic: "Discovery (T1082)",
-      anomalyBreakdown:
-        "Baseline calibrating across 5 behavioral telemetry dimensions",
-      reviewed: true,
-      source: "BehavioralEngine",
-      description:
-        "DefenX v2.0 neural behavioral monitor is building real-time statistical distributions for this host.",
-    },
-    {
-      id: "alert-containment-guard",
-      timestamp: now - 60000,
-      time: "1m ago",
-      title: "Safe-Mode Containment Guard Verified",
-      detail:
-        "Critical Windows OS processes protected with immutable system whitelist",
-      severity: "Medium",
-      type: "warning",
-      symbol: "△",
-      status: "Active",
-      mitreTactic: "Defense Evasion (T1562)",
-      anomalyBreakdown:
-        "Safe-Mode active (dry-run enforcement). Live firewall & process kill gated.",
-      reviewed: false,
-      source: "ContainmentGuard",
-      description:
-        "Dry-run safe mode is enabled by default to prevent accidental system interruption during threat assessment.",
-    },
-  ]
+  return []
 }
 
-// Default initial forensics events
+// Default initial forensics events (real daemon startup log)
 function getInitialForensics(): ForensicEvent[] {
   const now = Date.now()
-  const t = (offsetSec: number) =>
-    new Date(now - offsetSec * 1000).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    })
-
   return [
     {
       id: `fe-${now}-1`,
-      timestamp: now - 300000,
-      time: t(300),
+      timestamp: now,
+      time: new Date(now).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
       actor: "DefenX Core Daemon",
       category: "System",
       action: "DAEMON_STARTUP",
       target: "Windows Host",
       status: "Success",
-      event: "DefenX v2.0 CIM Telemetry Daemon initialized",
+      event: "DefenX Real-Time CIM Telemetry & Behavioral Daemon initialized",
       source: "collectorDaemon",
       result: "Normal",
-    },
-    {
-      id: `fe-${now}-2`,
-      timestamp: now - 180000,
-      time: t(180),
-      actor: "Anomaly Model",
-      category: "Analysis",
-      action: "BASELINE_CALIBRATION",
-      target: "Rolling EWMA Store",
-      status: "Verified",
-      event:
-        "Behavioral anomaly baseline calibrated for host processes and sockets",
-      source: "anomalyEngine",
-      result: "Verified",
-    },
-    {
-      id: `fe-${now}-3`,
-      timestamp: now - 60000,
-      time: t(60),
-      actor: "Containment Engine",
-      category: "Security",
-      action: "SAFE_MODE_CHECK",
-      target: "OS Firewall & Process Manager",
-      status: "Contained",
-      event:
-        "Containment safe-mode verified. Protected system whitelist loaded.",
-      source: "containmentEngine",
-      result: "Contained",
     },
   ]
 }

@@ -42,7 +42,6 @@ import {
   ThreatAlert,
   ForensicEvent,
   LoadBalancerNode,
-  AttackSimulationType,
   PlaybookPolicy,
 } from "@/types/defenx"
 import { navigation } from "@/components/common/Icon"
@@ -51,7 +50,6 @@ export function useDefenXController() {
   const [active, setActiveState] = useState<string>("Dashboard")
   const [dark, setDarkState] = useState<boolean>(false)
   const [safeMode, setSafeModeState] = useState<boolean>(true)
-  const [balance, setBalance] = useState<number>(2450)
 
   // Hydrate client preferences safely after mount to prevent hydration mismatch
   useEffect(() => {
@@ -59,10 +57,6 @@ export function useDefenXController() {
       const savedTheme = localStorage.getItem("defenx_theme")
       if (savedTheme) {
         setDarkState(savedTheme === "dark")
-      }
-      const savedBalance = localStorage.getItem("defenx_balance")
-      if (savedBalance) {
-        setBalance(parseInt(savedBalance, 10))
       }
       const hash = window.location.hash.slice(1)
       if (hash) {
@@ -73,7 +67,6 @@ export function useDefenXController() {
       }
     } catch {}
   }, [])
-  const [balanceModalOpen, setBalanceModalOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [notifications, setNotifications] = useState(false)
   const [modal, setModal] = useState<string | null>(null)
@@ -93,33 +86,7 @@ export function useDefenXController() {
   const [events, setEvents] = useState<ForensicEvent[]>([])
   const [interfaces, setInterfaces] = useState<RealNetworkInterface[]>([])
   const [connections, setConnections] = useState<NetworkConnection[]>([])
-  const [loadBalancerNodes, setLoadBalancerNodes] =
-    useState<LoadBalancerNode[]>([
-      {
-        name: "Node US-East",
-        region: "N. Virginia",
-        latencyMs: 28,
-        loadPercent: 35,
-        status: "Healthy",
-        reqPerSec: 1350,
-      },
-      {
-        name: "Node EU-Central",
-        region: "Frankfurt",
-        latencyMs: 24,
-        loadPercent: 41,
-        status: "Healthy",
-        reqPerSec: 1620,
-      },
-      {
-        name: "Node AP-South",
-        region: "Mumbai",
-        latencyMs: 18,
-        loadPercent: 24,
-        status: "Healthy",
-        reqPerSec: 1950,
-      },
-    ])
+  const [loadBalancerNodes, setLoadBalancerNodes] = useState<LoadBalancerNode[]>([])
   const setActive = useCallback((tab: string) => {
     setActiveState(tab)
     if (
@@ -137,18 +104,6 @@ export function useDefenXController() {
     } catch {}
   }, [])
 
-  const rechargeBalance = useCallback((amount: number) => {
-    setBalance((prev) => {
-      const next =
-        prev +
-        amount
-      try {
-        localStorage.setItem("defenx_balance", next.toString())
-      } catch {}
-      return next
-    })
-    setNotice(`Added ${amount} credits to DefenX security operations balance`)
-  }, [])
   const fetchTelemetry = useCallback(async () => {
     try {
       const res = await fetch("/api/telemetry", { cache: "no-store" })
@@ -386,27 +341,6 @@ export function useDefenXController() {
       }
     } catch {}
   }, [fetchForensics])
-  const triggerAttack = useCallback(
-    async (type: AttackSimulationType) => {
-      try {
-        const res = await fetch("/api/threats", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "simulate", attackType: type }),
-        })
-        const json = await res.json()
-        if (json.success) {
-          setNotice(
-            `Simulated attack '${type}' activated. Monitoring behavioral deviation.`,
-          )
-          refreshAll()
-        }
-      } catch (err) {
-        setNotice(`Attack simulation error: ${(err as Error).message}`)
-      }
-    },
-    [refreshAll],
-  )
   const togglePlaybookAction = useCallback(
     async (policyId: string) => {
       try {
@@ -441,13 +375,6 @@ export function useDefenXController() {
         const json = await res.json()
         if (json.success && json.answer) {
           setAnswer(json.answer)
-          setBalance((prev) => {
-            const next = Math.max(0, prev - 5)
-            try {
-              localStorage.setItem("defenx_balance", next.toString())
-            } catch {}
-            return next
-          })
           fetchForensics()
         } else {
           setAnswer(
@@ -481,10 +408,6 @@ export function useDefenXController() {
     setDark,
     safeMode,
     toggleSafeMode: toggleSafeModeAction,
-    balance,
-    rechargeBalance,
-    balanceModalOpen,
-    setBalanceModalOpen,
     profileOpen,
     setProfileOpen,
     notifications,
@@ -515,7 +438,6 @@ export function useDefenXController() {
     toggleAlertReviewHandler,
     quarantineProcess: quarantineProcessAction,
     blockIp: blockIpAction,
-    triggerAttack,
     playbooks,
     togglePlaybook: togglePlaybookAction,
   }

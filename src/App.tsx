@@ -8,7 +8,6 @@ import { useDefenXController } from "@/hooks/useDefenXController"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { TopBar } from "@/components/layout/TopBar"
 import { AssistantModal } from "@/components/layout/AssistantModal"
-import { BalanceModal } from "@/components/layout/BalanceModal"
 import { DetailModal } from "@/components/layout/DetailModal"
 import { tabDescriptions } from "@/components/common/Icon"
 import { DashboardView } from "@/components/views/DashboardView"
@@ -29,10 +28,6 @@ export default function App() {
     setDark,
     safeMode,
     toggleSafeMode,
-    balance,
-    rechargeBalance,
-    balanceModalOpen,
-    setBalanceModalOpen,
     profileOpen,
     setProfileOpen,
     notifications,
@@ -63,7 +58,6 @@ export default function App() {
     toggleAlertReviewHandler,
     quarantineProcess,
     blockIp,
-    triggerAttack,
     playbooks,
     togglePlaybook,
   } = useDefenXController()
@@ -100,8 +94,6 @@ export default function App() {
           setQuery={setQuery}
           processes={processes}
           alerts={alerts}
-          balance={balance}
-          setBalanceModalOpen={setBalanceModalOpen}
           safeMode={safeMode}
           toggleSafeMode={toggleSafeMode}
           notifications={notifications}
@@ -203,7 +195,6 @@ export default function App() {
                 connections={connections}
                 safeMode={safeMode}
                 toggleSafeMode={toggleSafeMode}
-                triggerAttack={triggerAttack}
                 openDetail={openDetail}
                 refreshAll={refreshAll}
               />
@@ -245,7 +236,6 @@ export default function App() {
                 processes={processes}
                 interfaces={interfaces}
                 connections={connections}
-                balance={balance}
                 setNotice={setNotice}
                 onOpenExecutiveBriefing={() => setBriefingOpen(true)}
               />
@@ -254,8 +244,6 @@ export default function App() {
             {active === "Settings" && (
               <OperationsHubView
                 telemetry={telemetry}
-                balance={balance}
-                setBalanceModalOpen={setBalanceModalOpen}
                 dark={dark}
                 setDark={setDark}
                 safeMode={safeMode}
@@ -276,15 +264,6 @@ export default function App() {
         asking={asking}
         answer={answer}
         askAssistant={askAssistant}
-      />
-
-      {}
-      <BalanceModal
-        isOpen={balanceModalOpen}
-        onClose={() => setBalanceModalOpen(false)}
-        balance={balance}
-        rechargeBalance={rechargeBalance}
-        telemetry={telemetry}
       />
 
       {}

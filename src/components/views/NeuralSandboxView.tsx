@@ -1,12 +1,11 @@
 "use client" /* Metric Summaries */ /* Behavioral Heuristics & Coverage */ /* Attack Simulator Control Panel */ /* Scenario 1 */ /* Scenario 2 */ /* Scenario 3 */ /* Monitored Processes Table */
 
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import { Icon } from "@/components/common/Icon"
 import {
   TelemetrySnapshot,
   ProcessInfo,
   NetworkConnection,
-  AttackSimulationType,
 } from "@/types/defenx"
 import { getRiskColor } from "@/lib/formatters"
 
@@ -16,7 +15,6 @@ interface NeuralSandboxViewProps {
   connections: NetworkConnection[]
   safeMode: boolean
   toggleSafeMode: () => void
-  triggerAttack: (type: AttackSimulationType) => Promise<void>
   openDetail: (title: string) => void
   refreshAll: () => void
 }
@@ -27,49 +25,60 @@ export function NeuralSandboxView({
   connections,
   safeMode,
   toggleSafeMode,
-  triggerAttack,
   openDetail,
   refreshAll,
 }: NeuralSandboxViewProps) {
   const [scanning, setScanning] = useState(false)
-  const [scanProgress, setScanProgress] = useState(0)
   const [scanStep, setScanStep] = useState("")
+  const [scanProgress, setScanProgress] = useState(0)
   const [scanDone, setScanDone] = useState(false)
-  const [simulating, setSimulating] = useState<string | null>(null)
 
-  function startLiveAnalysis() {
-    if (scanning) return
-    setScanning(true)
-    setScanProgress(15)
-    setScanStep(`Scanning ${processes.length} active Windows processes...`)
-
-    setTimeout(() => {
-      setScanProgress(45)
-      setScanStep(
-        `Inspecting ${connections.length} active TCP connections & listening ports...`,
-      )
-    }, 600)
-
-    setTimeout(() => {
-      setScanProgress(80)
-      setScanStep("Calculating EWMA feature Z-scores and command entropy...")
-    }, 1200)
-
-    setTimeout(() => {
-      setScanProgress(100)
-      setScanStep(
-        `Scan complete: Verified ${processes.length} processes on ${telemetry?.hostname || "system"}.`,
-      )
-      setScanning(false)
-      setScanDone(true)
-      refreshAll()
-    }, 1800)
+  // Real-time Shannon Entropy computation on live process command lines
+  function calculateEntropy(str: string): number {
+    if (!str || str.length === 0) return 0
+    const frequencies = new Map<string, number>()
+    for (let i = 0; i < str.length; i++) {
+      frequencies.set(str[i], (frequencies.get(str[i]) || 0) + 1)
+    }
+    let entropy = 0
+    for (const count of frequencies.values()) {
+      const p = count / str.length
+      entropy -= p * Math.log2(p)
+    }
+    return +entropy.toFixed(2)
   }
 
-  const handleLaunchScenario = async (type: AttackSimulationType) => {
-    setSimulating(type)
-    await triggerAttack(type)
-    setTimeout(() => setSimulating(null), 1500)
+  const entropyStats = useMemo(() => {
+    const list = processes
+      .filter((p) => p.commandLine && p.commandLine.length > 5)
+      .map((p) => ({
+        pid: p.pid,
+        name: p.name,
+        entropy: calculateEntropy(p.commandLine),
+        cmd: p.commandLine,
+      }))
+      .sort((a, b) => b.entropy - a.entropy)
+    const max = list[0]?.entropy || 0
+    const avg = list.length > 0 ? +(list.reduce((acc, c) => acc + c.entropy, 0) / list.length).toFixed(2) : 0
+    return { list, max, avg }
+  }, [processes])
+
+  const lolbinProcesses = useMemo(() => {
+    const set = new Set(["powershell.exe", "pwsh.exe", "cmd.exe", "mshta.exe", "rundll32.exe", "cscript.exe", "wscript.exe", "certutil.exe", "regsvr32.exe", "bitsadmin.exe", "wmic.exe"])
+    return processes.filter((p) => set.has(p.name.toLowerCase()))
+  }, [processes])
+
+  function startLiveAnalysis() {
+    setScanning(true)
+    setScanStep("Sampling active Windows processes and sockets...")
+    setScanProgress(50)
+    refreshAll()
+    setTimeout(() => {
+      setScanStep(`Scan complete: Verified ${processes.length} handles on ${telemetry?.hostname || "system"}`)
+      setScanProgress(100)
+      setScanning(false)
+      setScanDone(true)
+    }, 400)
   }
 
   return (
@@ -241,7 +250,7 @@ export function NeuralSandboxView({
         <div className="section-heading">
           <h2>
             <Icon name="zap" />
-            Neural Sandbox: Simulate Attack Scenarios
+            Live Behavioral Heuristics & Process Shannon Entropy
           </h2>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <span
@@ -262,14 +271,12 @@ export function NeuralSandboxView({
               {safeMode ? "Safe Containment (Dry-Run)" : "Live OS Enforcement"}
             </span>
             <button className="secondary-button" onClick={toggleSafeMode}>
-              Toggle Mode
+              Toggle Safe Mode
             </button>
           </div>
         </div>
         <p className="muted" style={{ margin: "4px 0 16px" }}>
-          Trigger simulated advanced threat vectors to test the multi-variate
-          anomaly engine, explainability breakdown, and 1-click OS quarantine
-          end-to-end.
+          Real-time Shannon information entropy analysis calculated across all active process command lines on this host. Entropy &gt; 4.75 indicates Base64 obfuscation or encrypted payload execution.
         </p>
 
         <div
@@ -279,195 +286,105 @@ export function NeuralSandboxView({
             gap: "14px",
           }}
         >
-          {}
           <div
             style={{
               padding: "18px",
               borderRadius: "14px",
               background: "#fff9ee",
               border: "1px solid #dfc39e",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
             }}
           >
-            <div>
-              <div
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <strong style={{ fontSize: "15px", color: "#781523" }}>
+                Shannon Entropy Metric
+              </strong>
+              <span
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "8px",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  padding: "2px 6px",
+                  borderRadius: "6px",
+                  background: entropyStats.max > 4.75 ? "#fee2e2" : "#e0e7ff",
+                  color: entropyStats.max > 4.75 ? "#b91c1c" : "#3730a3",
                 }}
               >
-                <strong style={{ fontSize: "15px", color: "#781523" }}>
-                  Encoded PowerShell LOLBin
-                </strong>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    padding: "2px 6px",
-                    borderRadius: "6px",
-                    background: "#fee2e2",
-                    color: "#b91c1c",
-                  }}
-                >
-                  Execution (T1059.001)
-                </span>
-              </div>
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "#5a4b41",
-                  lineHeight: "1.5",
-                  margin: "0 0 12px",
-                }}
-              >
-                Spawns <code>powershell.exe</code> with <code>-Enc</code> Base64
-                download cradle from <code>C:\Users\Public\Temp</code>. Triggers
-                command-line Shannon entropy and parent-child lineage anomaly.
-              </p>
+                Max: {entropyStats.max} bits/char
+              </span>
             </div>
-            <button
-              className="primary-button"
-              disabled={simulating !== null}
-              onClick={() => handleLaunchScenario("lolbin_powershell")}
-              style={{ width: "100%", justifyContent: "center" }}
-            >
-              {simulating === "lolbin_powershell"
-                ? "Deploying Scenario..."
-                : "Simulate LOLBin Attack"}
-              <Icon name="play" size={16} />
-            </button>
+            <p style={{ fontSize: "13px", color: "#5a4b41", lineHeight: "1.5", margin: "0 0 10px" }}>
+              Average host command entropy: <strong>{entropyStats.avg} bits/char</strong> across {entropyStats.list.length} inspected execution handles.
+            </p>
+            {entropyStats.list[0] && (
+              <small style={{ color: "#78552d", wordBreak: "break-all" }}>
+                Highest entropy: <strong>{entropyStats.list[0].name}</strong> (PID {entropyStats.list[0].pid})
+              </small>
+            )}
           </div>
 
-          {}
           <div
             style={{
               padding: "18px",
               borderRadius: "14px",
               background: "#fff9ee",
               border: "1px solid #dfc39e",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
             }}
           >
-            <div>
-              <div
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <strong style={{ fontSize: "15px", color: "#781523" }}>
+                Living-Off-The-Land (LOLBins)
+              </strong>
+              <span
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "8px",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  padding: "2px 6px",
+                  borderRadius: "6px",
+                  background: lolbinProcesses.length > 0 ? "#fef3c7" : "#dcfce7",
+                  color: lolbinProcesses.length > 0 ? "#92400e" : "#166534",
                 }}
               >
-                <strong style={{ fontSize: "15px", color: "#781523" }}>
-                  C2 Outbound Beaconing
-                </strong>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    padding: "2px 6px",
-                    borderRadius: "6px",
-                    background: "#fee2e2",
-                    color: "#b91c1c",
-                  }}
-                >
-                  Command & Control (T1071)
-                </span>
-              </div>
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "#5a4b41",
-                  lineHeight: "1.5",
-                  margin: "0 0 12px",
-                }}
-              >
-                Establishes suspicious TCP sockets to hostile remote IP{" "}
-                <code>185.220.101.5</code> on port <code>4444</code>. Triggers
-                socket baseline Z-score spike and enables 1-click firewall
-                block.
-              </p>
+                {lolbinProcesses.length} Detected
+              </span>
             </div>
-            <button
-              className="primary-button"
-              disabled={simulating !== null}
-              onClick={() => handleLaunchScenario("c2_beacon")}
-              style={{ width: "100%", justifyContent: "center" }}
-            >
-              {simulating === "c2_beacon"
-                ? "Deploying Scenario..."
-                : "Simulate C2 Beacon"}
-              <Icon name="play" size={16} />
-            </button>
+            <p style={{ fontSize: "13px", color: "#5a4b41", lineHeight: "1.5", margin: "0 0 10px" }}>
+              Monitoring system dual-use binaries (PowerShell, cmd.exe, mshta, certutil, rundll32) for anomalous execution lineages.
+            </p>
+            <small style={{ color: "#78552d" }}>
+              {lolbinProcesses.length === 0 ? "Zero untrusted shell processes currently active." : `Active: ${lolbinProcesses.map(p => `${p.name} (PID ${p.pid})`).join(", ")}`}
+            </small>
           </div>
 
-          {}
           <div
             style={{
               padding: "18px",
               borderRadius: "14px",
               background: "#fff9ee",
               border: "1px solid #dfc39e",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
             }}
           >
-            <div>
-              <div
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <strong style={{ fontSize: "15px", color: "#781523" }}>
+                Network Sockets Heuristic
+              </strong>
+              <span
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "8px",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  padding: "2px 6px",
+                  borderRadius: "6px",
+                  background: connections.filter(c => c.isSuspicious).length > 0 ? "#fee2e2" : "#dcfce7",
+                  color: connections.filter(c => c.isSuspicious).length > 0 ? "#b91c1c" : "#166534",
                 }}
               >
-                <strong style={{ fontSize: "15px", color: "#781523" }}>
-                  Ransomware Shadow Purge
-                </strong>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    padding: "2px 6px",
-                    borderRadius: "6px",
-                    background: "#fee2e2",
-                    color: "#b91c1c",
-                  }}
-                >
-                  Impact (T1486)
-                </span>
-              </div>
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "#5a4b41",
-                  lineHeight: "1.5",
-                  margin: "0 0 12px",
-                }}
-              >
-                Simulates <code>vss_purge.exe</code> executing{" "}
-                <code>vssadmin delete shadows</code> and memory spike (1.2 GB).
-                Triggers critical behavioral threshold and automatic containment
-                alert.
-              </p>
+                {connections.length} Sockets
+              </span>
             </div>
-            <button
-              className="primary-button"
-              disabled={simulating !== null}
-              onClick={() => handleLaunchScenario("ransomware_io")}
-              style={{ width: "100%", justifyContent: "center" }}
-            >
-              {simulating === "ransomware_io"
-                ? "Deploying Scenario..."
-                : "Simulate Ransomware Spike"}
-              <Icon name="play" size={16} />
-            </button>
+            <p style={{ fontSize: "13px", color: "#5a4b41", lineHeight: "1.5", margin: "0 0 10px" }}>
+              Tracking active TCP endpoints, established connections, and listening ports across all network adapters.
+            </p>
+            <small style={{ color: "#78552d" }}>
+              Suspicious non-standard ports: <strong>{connections.filter(c => c.isSuspicious).length}</strong> flagged.
+            </small>
           </div>
         </div>
       </section>

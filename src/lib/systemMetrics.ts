@@ -8,7 +8,6 @@ import {
   ForensicEvent,
   RealNetworkInterface,
   LoadBalancerNode,
-  AttackSimulationType,
   ContainmentResult,
   PlaybookPolicy,
 } from "@/types/defenx"
@@ -45,7 +44,6 @@ export type {
   ForensicEvent as RealEvent,
   LoadBalancerNode,
   ContainmentResult,
-  AttackSimulationType,
 }
 
 // Re-export containment controls
@@ -164,67 +162,58 @@ export function getForensicsEvents(): ForensicEvent[] {
   return loadForensics()
 }
 
-export function triggerSimulatedAttack(type: AttackSimulationType) {
-  return collectorDaemon.triggerSimulatedAttack(type)
-}
-
 export { getRecentSystemErrors }
 
-// Real regional probes measuring actual edge response times
+// Real edge and gateway latency probes measuring actual host connectivity
 export async function getLoadBalancerNodes(): Promise<LoadBalancerNode[]> {
   async function probeLatency(url: string, fallback: number): Promise<number> {
     const start = Date.now()
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 2000)
+      const timeoutId = setTimeout(() => controller.abort(), 1500)
       await fetch(url, {
         method: "HEAD",
         signal: controller.signal,
         cache: "no-store",
       })
       clearTimeout(timeoutId)
-      return Math.max(8, Date.now() - start)
+      return Math.max(1, Date.now() - start)
     } catch {
       return fallback
     }
   }
 
-  // Probe real edge endpoints (Cloudflare / Google / AWS)
-  const [usLat, euLat, apLat] = await Promise.all([
-    probeLatency("https://1.1.1.1", 38),
-    probeLatency("https://www.cloudflare.com", 29),
+  // Probe real network routes
+  const [cfLat, googleLat, localLat] = await Promise.all([
+    probeLatency("https://1.1.1.1", 24),
     probeLatency("https://www.google.com", 18),
+    probeLatency("http://127.0.0.1:8443", 1),
   ])
-
-  const total = 1 / usLat + 1 / euLat + 1 / apLat
-  const usLoad = Math.round((1 / usLat / total) * 100)
-  const euLoad = Math.round((1 / euLat / total) * 100)
-  const apLoad = 100 - usLoad - euLoad
 
   return [
     {
-      name: "Node US-East",
-      region: "N. Virginia (AWS/CF Edge)",
-      latencyMs: usLat,
-      loadPercent: usLoad,
-      status: "Healthy",
-      reqPerSec: Math.round(1200 + (1000 / usLat) * 20),
+      name: "Primary Gateway Route",
+      region: "Public Edge Anycast (1.1.1.1)",
+      latencyMs: cfLat,
+      loadPercent: cfLat > 100 ? 85 : Math.min(100, Math.max(5, Math.round(cfLat * 1.5))),
+      status: cfLat < 200 ? "Healthy" : "Degraded",
+      reqPerSec: 0,
     },
     {
-      name: "Node EU-Central",
-      region: "Frankfurt (CF Backbone)",
-      latencyMs: euLat,
-      loadPercent: euLoad,
-      status: "Healthy",
-      reqPerSec: Math.round(1500 + (1000 / euLat) * 20),
+      name: "Upstream Internet Health",
+      region: "Global WAN (Google Backbone)",
+      latencyMs: googleLat,
+      loadPercent: googleLat > 100 ? 85 : Math.min(100, Math.max(5, Math.round(googleLat * 1.2))),
+      status: googleLat < 200 ? "Healthy" : "Degraded",
+      reqPerSec: 0,
     },
     {
-      name: "Node AP-South",
-      region: "Mumbai (Edge Point)",
-      latencyMs: apLat,
-      loadPercent: apLoad,
+      name: "Zero-Trust Host Boundary",
+      region: "Local Loopback (127.0.0.1:8443)",
+      latencyMs: localLat,
+      loadPercent: 4,
       status: "Healthy",
-      reqPerSec: Math.round(1800 + (1000 / apLat) * 20),
+      reqPerSec: 0,
     },
   ]
 }

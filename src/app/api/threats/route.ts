@@ -4,7 +4,6 @@ import {
   toggleAlertReview,
   quarantineProcess,
   blockRemoteIp,
-  triggerSimulatedAttack,
   isSafeMode,
   setSafeMode,
   toggleSafeMode,
@@ -42,17 +41,10 @@ export async function POST(request: Request) {
       pid,
       processName,
       remoteIp,
-      attackType,
       safeMode,
     } = body
 
-    // 1. Attack Simulation Dispatch
-    if (action === "simulate" && attackType) {
-      const result = triggerSimulatedAttack(attackType)
-      return NextResponse.json({ ...result })
-    }
-
-    // 2. Safe-Mode Toggles
+    // 1. Safe-Mode Toggles
     if (action === "toggle_safe_mode") {
       const newMode = toggleSafeMode()
       return NextResponse.json({ success: true, safeMode: newMode })

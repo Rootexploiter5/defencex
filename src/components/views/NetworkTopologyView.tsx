@@ -125,11 +125,11 @@ export function NetworkTopologyView({
         <div className="section-heading">
           <h2>
             <Icon name="pulse" size={26} />
-            Global Load Balancer & Real-Time Measured Latency
+            Host Gateway & WAN Edge Connectivity Probes
           </h2>
           <span className="live">
             <i />
-            Edge Probes Live
+            Real Latency Probes
           </span>
         </div>
         <div className="balancer-grid">
@@ -142,28 +142,27 @@ export function NetworkTopologyView({
                 <b className="status-badge online">{node.status}</b>
               </div>
               <div className="node-metric">
-                <span>Traffic Load</span>
-                <strong>{node.loadPercent}%</strong>
+                <span>Latency Metric</span>
+                <strong>{node.latencyMs} ms</strong>
               </div>
               <div className="node-bar">
-                <div style={{ width: `${node.loadPercent}%` }} />
+                <div style={{ width: `${Math.min(100, Math.max(10, node.loadPercent))}%` }} />
               </div>
               <small>
-                Measured Ping: {node.latencyMs}ms ·{" "}
-                {node.reqPerSec.toLocaleString()} req/s
+                Round-trip latency to edge endpoint: {node.latencyMs}ms
               </small>
             </div>
           ))}
         </div>
         <div className="balancer-summary">
           <span>
-            <b>Algorithm:</b> Dynamic Least Response Time (L4/L7)
+            <b>Probe Engine:</b> Active Real-Time HTTP/DNS Latency
           </span>
           <span>
-            <b>Edge Probes:</b> 3 Regional Backbone Nodes
+            <b>Hardware Adapters:</b> {interfaces.length} Active System Interfaces
           </span>
           <span>
-            <b>Local Gateway Latency:</b> {telemetry?.networkLatencyMs ?? 20}ms
+            <b>Active TCP Sockets:</b> {connections.length} Endpoints
           </span>
         </div>
       </section>

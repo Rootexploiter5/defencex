@@ -16,7 +16,6 @@ interface ReportsViewProps {
   processes: ProcessInfo[]
   interfaces: RealNetworkInterface[]
   connections: NetworkConnection[]
-  balance: number
   setNotice: (n: string) => void
   onOpenExecutiveBriefing?: () => void
 }
@@ -27,7 +26,6 @@ export function ReportsView({
   processes,
   interfaces,
   connections,
-  balance,
   setNotice,
   onOpenExecutiveBriefing,
 }: ReportsViewProps) {
@@ -108,7 +106,6 @@ export function ReportsView({
           `${telemetry?.anomalyScore || 0}/100 (${telemetry?.baselineStatus || "stable"})`,
         ],
         ["Active Alerts", alerts.length],
-        ["Defense Quota Balance", `${balance} Credits`],
         ["System Uptime", telemetry?.uptimeFormatted || "Unknown"],
         ["Report Generation Time", new Date().toISOString()],
       ]

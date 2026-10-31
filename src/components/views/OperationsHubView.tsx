@@ -14,8 +14,6 @@ const DEFAULT_SETTINGS = {
 
 interface OperationsHubViewProps {
   telemetry: TelemetrySnapshot | null
-  balance: number
-  setBalanceModalOpen: (open: boolean) => void
   dark: boolean
   setDark: (dark: boolean) => void
   safeMode: boolean
@@ -26,8 +24,6 @@ interface OperationsHubViewProps {
 
 export function OperationsHubView({
   telemetry,
-  balance,
-  setBalanceModalOpen,
   dark,
   setDark,
   safeMode,
@@ -231,30 +227,25 @@ export function OperationsHubView({
           {}
           <section className="card tab-panel">
             <h2>
-              <Icon name="wallet" />
-              Defense Quota & Credits
+              <Icon name="cpu" />
+              Daemon Telemetry Allocation
             </h2>
             <div className="about-row">
-              <span>Available Balance</span>
-              <strong style={{ color: "#a50020" }}>
-                {balance.toLocaleString()} Credits
-              </strong>
+              <span>Telemetry Polling Tick</span>
+              <strong style={{ color: "#047857" }}>3.0s (CIM Asynchronous)</strong>
             </div>
             <div className="about-row">
-              <span>Allocation Value</span>
-              <strong>${(balance / 10).toFixed(2)} USD</strong>
+              <span>Zero-Trust Boundary</span>
+              <strong>127.0.0.1 (Strict Loopback)</strong>
             </div>
             <div className="about-row">
-              <span>Shield Tier</span>
-              <strong>Enterprise Real-Time Pro v2.0</strong>
+              <span>Persistence Engine</span>
+              <strong>Atomic Write-Through JSON</strong>
             </div>
-            <button
-              className="primary-button"
-              style={{ marginTop: "14px" }}
-              onClick={() => setBalanceModalOpen(true)}
-            >
-              Manage Balance & Top-up <Icon name="arrow" size={17} />
-            </button>
+            <div className="about-row">
+              <span>Memory Footprint</span>
+              <strong>{telemetry?.usedMemoryGB ? `${telemetry.usedMemoryGB} GB Physical RAM` : "Monitored"}</strong>
+            </div>
           </section>
 
           {}

@@ -9,8 +9,6 @@ interface TopBarProps {
   setQuery: (q: string) => void
   processes: ProcessInfo[]
   alerts: ThreatAlert[]
-  balance: number
-  setBalanceModalOpen: (open: boolean) => void
   safeMode: boolean
   toggleSafeMode: () => void
   notifications: boolean
@@ -29,8 +27,6 @@ export function TopBar({
   setQuery,
   processes,
   alerts,
-  balance,
-  setBalanceModalOpen,
   safeMode,
   toggleSafeMode,
   notifications,
@@ -149,21 +145,6 @@ export function TopBar({
         >
           <Icon name="bot" />
         </button>
-
-        {}
-        <div className="balance-wrap">
-          <button
-            className="balance-pill"
-            onClick={() => setBalanceModalOpen(true)}
-            title="DefenX Security Quota & Balance Hub"
-            aria-label="DefenX Security Quota & Balance Hub"
-          >
-            <div className="balance-dot" />
-            <Icon name="wallet" size={17} />
-            <span className="balance-amount">{balance.toLocaleString()}</span>
-            <span className="balance-label">Credits</span>
-          </button>
-        </div>
 
         {}
         <div className="notification-wrap">

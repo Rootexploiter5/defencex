@@ -271,7 +271,7 @@ export function DashboardView({
               <Icon name="sparkles" size={27} />
               Real-Time AI Security Assistant
             </h2>
-            <span className="beta">5 Cr/query</span>
+            <span className="beta">Live Engine</span>
           </div>
           <div className="assistant-message">
             <div className="bot-avatar">
