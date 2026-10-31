@@ -71,7 +71,7 @@ export default function App() {
   )
 
   return (
-    <div className={`app ${dark ? "dark-mode" : ""}`}>
+    <div className={dark ? "app dark-mode" : "app"}>
       {}
       <div className="silk silk-one" />
       <div className="silk silk-two" />

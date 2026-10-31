@@ -46,56 +46,32 @@ import {
 } from "@/types/defenx"
 import { navigation } from "@/components/common/Icon"
 
-function getInitialTab(): string {
-  if (
-    typeof window ===
-    "undefined"
-  )
-    return "Dashboard"
-  const hash = window.location.hash.slice(1)
-  const match = navigation.find(
-    (item) =>
-      item.label.toLowerCase().replace(/ /g, "-") ===
-      hash,
-  )
-  return (
-    match?.label ??
-    "Dashboard"
-  )
-}
-
 export function useDefenXController() {
-  const [active, setActiveState] = useState<string>(getInitialTab)
-  const [dark, setDarkState] = useState<boolean>(() => {
-    if (
-      typeof window ===
-      "undefined"
-    )
-      return false
-    try {
-      return (
-        localStorage.getItem("defenx_theme") ===
-        "dark"
-      )
-    } catch {
-      return false
-    }
-  })
-
+  const [active, setActiveState] = useState<string>("Dashboard")
+  const [dark, setDarkState] = useState<boolean>(false)
   const [safeMode, setSafeModeState] = useState<boolean>(true)
-  const [balance, setBalance] = useState<number>(() => {
-    if (
-      typeof window ===
-      "undefined"
-    )
-      return 2450
+  const [balance, setBalance] = useState<number>(2450)
+
+  // Hydrate client preferences safely after mount to prevent hydration mismatch
+  useEffect(() => {
     try {
-      const saved = localStorage.getItem("defenx_balance")
-      return saved ? parseInt(saved, 10) : 2450
-    } catch {
-      return 2450
-    }
-  })
+      const savedTheme = localStorage.getItem("defenx_theme")
+      if (savedTheme) {
+        setDarkState(savedTheme === "dark")
+      }
+      const savedBalance = localStorage.getItem("defenx_balance")
+      if (savedBalance) {
+        setBalance(parseInt(savedBalance, 10))
+      }
+      const hash = window.location.hash.slice(1)
+      if (hash) {
+        const match = navigation.find(
+          (item) => item.label.toLowerCase().replace(/ /g, "-") === hash,
+        )
+        if (match) setActiveState(match.label)
+      }
+    } catch {}
+  }, [])
   const [balanceModalOpen, setBalanceModalOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [notifications, setNotifications] = useState(false)

@@ -1,8 +1,16 @@
 "use client" /* Protection & Notifications */ /* Containment Engine Guard */ /* Defense Quota & Credits */ /* Appearance */ /* About This Node */
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Icon } from "@/components/common/Icon"
 import { TelemetrySnapshot } from "@/types/defenx"
+
+const DEFAULT_SETTINGS = {
+  "Real-time protection": true,
+  "Behavioral analysis": true,
+  "Automatic security updates": true,
+  "Threat notifications": true,
+  "Weekly security summary": false,
+}
 
 interface OperationsHubViewProps {
   telemetry: TelemetrySnapshot | null
@@ -23,22 +31,16 @@ export function OperationsHubView({
   safeMode,
   toggleSafeMode,
 }: OperationsHubViewProps) {
-  const [settings, setSettings] = useState<Record<string, boolean>>(() => {
-    const defaultSettings = {
-      "Real-time protection": true,
-      "Behavioral analysis": true,
-      "Automatic security updates": true,
-      "Threat notifications": true,
-      "Weekly security summary": false,
-    }
-    if (typeof window === "undefined") return defaultSettings
+  const [settings, setSettings] = useState<Record<string, boolean>>(DEFAULT_SETTINGS)
+
+  useEffect(() => {
     try {
       const saved = localStorage.getItem("defenx_settings")
-      return saved ? JSON.parse(saved) : defaultSettings
-    } catch {
-      return defaultSettings
-    }
-  })
+      if (saved) {
+        setSettings(JSON.parse(saved))
+      }
+    } catch {}
+  }, [])
 
   return (
     <>
