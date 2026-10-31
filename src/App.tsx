@@ -19,6 +19,7 @@ import { NetworkTopologyView } from "@/components/views/NetworkTopologyView"
 import { ForensicsView } from "@/components/views/ForensicsView"
 import { ReportsView } from "@/components/views/ReportsView"
 import { OperationsHubView } from "@/components/views/OperationsHubView"
+import { ExecutiveBriefingModal } from "@/components/views/ExecutiveBriefingModal"
 
 export default function App() {
   const {
@@ -63,7 +64,11 @@ export default function App() {
     quarantineProcess,
     blockIp,
     triggerAttack,
+    playbooks,
+    togglePlaybook,
   } = useDefenXController()
+
+  const [briefingOpen, setBriefingOpen] = React.useState(false)
 
   const unreviewedAlertCount = useMemo(
     () => alerts.filter((a) => !a.reviewed).length,
@@ -71,7 +76,7 @@ export default function App() {
   )
 
   return (
-    <div className={dark ? "app dark-mode" : "app"}>
+    <div className={dark ? "app dark-mode" : "app"} suppressHydrationWarning>
       {}
       <div className="silk silk-one" />
       <div className="silk silk-two" />
@@ -187,6 +192,7 @@ export default function App() {
                 processes={processes}
                 refreshAll={refreshAll}
                 openDetail={openDetail}
+                onQuarantine={quarantineProcess}
               />
             )}
 
@@ -206,6 +212,7 @@ export default function App() {
             {active === "Threat Center" && (
               <ThreatCenterView
                 alerts={alerts}
+                processes={processes}
                 telemetry={telemetry}
                 safeMode={safeMode}
                 toggleSafeMode={toggleSafeMode}
@@ -240,6 +247,7 @@ export default function App() {
                 connections={connections}
                 balance={balance}
                 setNotice={setNotice}
+                onOpenExecutiveBriefing={() => setBriefingOpen(true)}
               />
             )}
 
@@ -252,6 +260,8 @@ export default function App() {
                 setDark={setDark}
                 safeMode={safeMode}
                 toggleSafeMode={toggleSafeMode}
+                playbooks={playbooks}
+                togglePlaybook={togglePlaybook}
               />
             )}
           </section>
@@ -285,6 +295,18 @@ export default function App() {
         processes={processes}
         connections={connections}
         telemetry={telemetry}
+      />
+
+      {}
+      <ExecutiveBriefingModal
+        isOpen={briefingOpen}
+        onClose={() => setBriefingOpen(false)}
+        telemetry={telemetry}
+        alerts={alerts}
+        processes={processes}
+        interfaces={interfaces}
+        connections={connections}
+        events={events}
       />
     </div>
   )

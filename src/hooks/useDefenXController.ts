@@ -43,6 +43,7 @@ import {
   ForensicEvent,
   LoadBalancerNode,
   AttackSimulationType,
+  PlaybookPolicy,
 } from "@/types/defenx"
 import { navigation } from "@/components/common/Icon"
 
@@ -88,6 +89,7 @@ export function useDefenXController() {
   const [history, setHistory] = useState<TelemetryPoint[]>([])
   const [processes, setProcesses] = useState<ProcessInfo[]>([])
   const [alerts, setAlerts] = useState<ThreatAlert[]>([])
+  const [playbooks, setPlaybooks] = useState<PlaybookPolicy[]>([])
   const [events, setEvents] = useState<ForensicEvent[]>([])
   const [interfaces, setInterfaces] = useState<RealNetworkInterface[]>([])
   const [connections, setConnections] = useState<NetworkConnection[]>([])
@@ -192,6 +194,7 @@ export function useDefenXController() {
       const json = await res.json()
       if (json.success && json.data) {
         setAlerts(json.data)
+        if (json.playbooks) setPlaybooks(json.playbooks)
         if (
           typeof json.safeMode ===
           "boolean"
@@ -226,6 +229,25 @@ export function useDefenXController() {
   ])
   useEffect(() => {
     refreshAll()
+
+    // Establish live SSE stream for sub-second telemetry push
+    let eventSource: EventSource | null = null
+    try {
+      eventSource = new EventSource("/api/telemetry/stream")
+      eventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data)
+          if (payload.telemetry) setTelemetry(payload.telemetry)
+          if (payload.history) setHistory(payload.history)
+          if (payload.alerts && payload.alerts.length > 0) setAlerts(payload.alerts)
+          if (typeof payload.safeMode === "boolean") setSafeModeState(payload.safeMode)
+        } catch {}
+      }
+      eventSource.onerror = () => {
+        eventSource?.close()
+      }
+    } catch {}
+
     const interval = setInterval(() => {
       fetchTelemetry()
       fetchAlerts()
@@ -238,6 +260,7 @@ export function useDefenXController() {
     }, 6000)
 
     return () => {
+      eventSource?.close()
       clearInterval(interval)
       clearInterval(slowInterval)
     }
@@ -384,6 +407,25 @@ export function useDefenXController() {
     },
     [refreshAll],
   )
+  const togglePlaybookAction = useCallback(
+    async (policyId: string) => {
+      try {
+        const res = await fetch("/api/threats", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "toggle_playbook", policyId }),
+        })
+        const json = await res.json()
+        if (json.success && json.playbooks) {
+          setPlaybooks(json.playbooks)
+          setNotice(`SOAR Playbook policy updated: ${json.enabled ? "ENABLED" : "DISABLED"}`)
+          fetchForensics()
+        }
+      } catch {}
+    },
+    [fetchForensics],
+  )
+
   const askAssistant = useCallback(
     async (customPrompt?: string) => {
       const textToAsk = customPrompt || prompt
@@ -474,5 +516,7 @@ export function useDefenXController() {
     quarantineProcess: quarantineProcessAction,
     blockIp: blockIpAction,
     triggerAttack,
+    playbooks,
+    togglePlaybook: togglePlaybookAction,
   }
 }

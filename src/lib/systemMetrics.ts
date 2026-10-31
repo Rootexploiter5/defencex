@@ -10,7 +10,9 @@ import {
   LoadBalancerNode,
   AttackSimulationType,
   ContainmentResult,
+  PlaybookPolicy,
 } from "@/types/defenx"
+import { getPlaybookPolicies, togglePlaybookPolicy } from "./playbookEngine"
 import { collectorDaemon } from "./collectorDaemon"
 import {
   isSafeMode,
@@ -53,6 +55,8 @@ export {
   toggleSafeMode,
   quarantineProcess,
   blockRemoteIp,
+  getPlaybookPolicies,
+  togglePlaybookPolicy,
 }
 
 export function getSystemTelemetry(): TelemetrySnapshot {

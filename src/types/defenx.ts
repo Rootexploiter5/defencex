@@ -159,3 +159,25 @@ export interface ContainmentResult {
 
 export type AttackSimulationType = "lolbin_powershell" | "ransomware_io" | "c2_beacon"
 
+export interface MitreTechnique {
+  id: string
+  tactic: string
+  name: string
+  description: string
+  detected: boolean
+  alertCount: number
+  pids?: number[]
+}
+
+export interface PlaybookPolicy {
+  id: string
+  name: string
+  description: string
+  enabled: boolean
+  condition: "high_entropy" | "c2_socket" | "anomaly_spike" | "shadow_purge"
+  action: "quarantine_process" | "block_ip" | "alert_analyst"
+  triggerCount: number
+  lastTriggered?: number
+}
+
+

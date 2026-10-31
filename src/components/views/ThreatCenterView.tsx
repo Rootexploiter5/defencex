@@ -2,11 +2,13 @@
 
 import React, { useState, useMemo } from "react"
 import { Icon } from "@/components/common/Icon"
-import { ThreatAlert, TelemetrySnapshot } from "@/types/defenx"
+import { ThreatAlert, TelemetrySnapshot, ProcessInfo } from "@/types/defenx"
 import { getSeverityBadgeColor } from "@/lib/formatters"
+import { MitreMatrixView } from "./MitreMatrixView"
 
 interface ThreatCenterViewProps {
   alerts: ThreatAlert[]
+  processes?: ProcessInfo[]
   telemetry: TelemetrySnapshot | null
   safeMode: boolean
   toggleSafeMode: () => void
@@ -22,6 +24,7 @@ interface ThreatCenterViewProps {
 
 export function ThreatCenterView({
   alerts,
+  processes = [],
   telemetry,
   safeMode,
   toggleSafeMode,
@@ -31,15 +34,20 @@ export function ThreatCenterView({
   openDetail,
 }: ThreatCenterViewProps) {
   const [filter, setFilter] = useState("All")
+  const [selectedTechniqueId, setSelectedTechniqueId] = useState<string | null>(null)
   const [actingAlertId, setActingAlertId] = useState<string | null>(null)
 
   const filteredAlerts = useMemo(() => {
     return alerts.filter((a) => {
+      if (selectedTechniqueId) {
+        const matchesTech = (a.mitreTactic || "").includes(selectedTechniqueId) || a.detail.includes(selectedTechniqueId)
+        if (!matchesTech) return false
+      }
       if (filter === "All") return true
       if (filter === "Reviewed") return a.reviewed
       return !a.reviewed
     })
-  }, [alerts, filter])
+  }, [alerts, filter, selectedTechniqueId])
 
   const handleQuarantine = async (alert: ThreatAlert) => {
     if (!alert.pid) return
@@ -123,7 +131,14 @@ export function ThreatCenterView({
           </div>
         </div>
 
-        {}
+        <MitreMatrixView
+          alerts={alerts}
+          processes={processes}
+          onSelectTechnique={setSelectedTechniqueId}
+          selectedTechniqueId={selectedTechniqueId}
+        />
+
+        {/* Filter Chips */}
         <div className="filter-chips" aria-label="Filter alerts">
           {["All", "Awaiting review", "Reviewed"].map((f) => (
             <button

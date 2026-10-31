@@ -12,6 +12,7 @@ import { formatUptime } from "./formatters"
 import { anomalyEngine } from "./anomalyEngine"
 import { logError, logInfo } from "./logger"
 import { appendForensicEvent, saveAlert } from "./storageEngine"
+import { evaluatePlaybooks } from "./playbookEngine"
 
 const execAsync = promisify(exec)
 
@@ -400,7 +401,10 @@ class CollectorDaemon {
         timestamp: Date.now(),
       }
 
-      // 6. Append to rolling history
+      // 6. Evaluate automated SOAR Playbooks
+      evaluatePlaybooks(daemonState.cachedTelemetry, rawProcesses, rawConnections).catch(() => {})
+
+      // 7. Append to rolling history
       const now = new Date()
       daemonState.telemetryHistory.push({
         time: now.toLocaleTimeString([], {

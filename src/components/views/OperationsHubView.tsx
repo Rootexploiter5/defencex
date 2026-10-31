@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { Icon } from "@/components/common/Icon"
-import { TelemetrySnapshot } from "@/types/defenx"
+import { TelemetrySnapshot, PlaybookPolicy } from "@/types/defenx"
 
 const DEFAULT_SETTINGS = {
   "Real-time protection": true,
@@ -20,6 +20,8 @@ interface OperationsHubViewProps {
   setDark: (dark: boolean) => void
   safeMode: boolean
   toggleSafeMode: () => void
+  playbooks?: PlaybookPolicy[]
+  togglePlaybook?: (policyId: string) => Promise<void>
 }
 
 export function OperationsHubView({
@@ -30,6 +32,8 @@ export function OperationsHubView({
   setDark,
   safeMode,
   toggleSafeMode,
+  playbooks = [],
+  togglePlaybook,
 }: OperationsHubViewProps) {
   const [settings, setSettings] = useState<Record<string, boolean>>(DEFAULT_SETTINGS)
 
@@ -97,7 +101,87 @@ export function OperationsHubView({
             </div>
           </section>
 
-          {}
+          {/* SOAR Automated Response Playbooks */}
+          <section className="card tab-panel">
+            <div className="section-heading">
+              <h2>
+                <Icon name="zap" />
+                SOAR Automated Response Playbooks
+              </h2>
+              <span
+                style={{
+                  fontSize: "12px",
+                  padding: "4px 10px",
+                  borderRadius: "20px",
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  border: "1px solid #fde68a",
+                  fontWeight: 600,
+                }}
+              >
+                {playbooks.filter((p) => p.enabled).length} Active Playbooks
+              </span>
+            </div>
+            <p className="muted" style={{ margin: "4px 0 16px" }}>
+              Automated response rules execute containment (process kill, firewall block) automatically upon signature breach, honoring the Safe-Mode setting.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {playbooks.map((policy) => (
+                <div
+                  key={policy.id}
+                  style={{
+                    padding: "14px 16px",
+                    borderRadius: "10px",
+                    border: "1px solid #dfcca9",
+                    background: policy.enabled ? "#fffaf1" : "rgba(0,0,0,0.02)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "14px",
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                      <strong style={{ fontSize: "14px", color: policy.enabled ? "#6b0f1a" : "#716358" }}>
+                        {policy.name}
+                      </strong>
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                          background: policy.action === "quarantine_process" ? "#fee2e2" : "#fef3c7",
+                          color: policy.action === "quarantine_process" ? "#b91c1c" : "#92400e",
+                        }}
+                      >
+                        Action: {policy.action}
+                      </span>
+                      {policy.triggerCount > 0 && (
+                        <span style={{ fontSize: "11px", color: "#b91c1c", fontWeight: 700 }}>
+                          ({policy.triggerCount} triggered)
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ margin: 0, fontSize: "13px", color: "#665447", lineHeight: "1.4" }}>
+                      {policy.description}
+                    </p>
+                  </div>
+
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    checked={policy.enabled}
+                    onChange={() => togglePlaybook?.(policy.id)}
+                    aria-label={`Toggle ${policy.name}`}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Containment Engine Guard */}
           <section className="card tab-panel">
             <div className="section-heading">
               <h2>

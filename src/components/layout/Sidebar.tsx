@@ -84,7 +84,7 @@ export function Sidebar({
           }}
         >
           <Icon name="sun" size={20} />
-          <span className={dark ? "switch on" : "switch"}>
+          <span className={dark ? "switch on" : "switch"} suppressHydrationWarning>
             <i />
           </span>
           <Icon name="moon" size={18} />

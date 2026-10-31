@@ -8,16 +8,20 @@ import {
   isSafeMode,
   setSafeMode,
   toggleSafeMode,
+  getPlaybookPolicies,
+  togglePlaybookPolicy,
 } from "@/lib/systemMetrics"
 import { logError } from "@/lib/logger"
 
 export async function GET() {
   try {
     const alerts = await getRealAlerts()
+    const playbooks = getPlaybookPolicies()
     return NextResponse.json({
       success: true,
       count: alerts.length,
       data: alerts,
+      playbooks,
       safeMode: isSafeMode(),
     })
   } catch (error) {
@@ -52,6 +56,12 @@ export async function POST(request: Request) {
     if (action === "toggle_safe_mode") {
       const newMode = toggleSafeMode()
       return NextResponse.json({ success: true, safeMode: newMode })
+    }
+
+    // SOAR Playbook Policy Toggle
+    if (action === "toggle_playbook" && body.policyId) {
+      const enabled = togglePlaybookPolicy(body.policyId)
+      return NextResponse.json({ success: true, policyId: body.policyId, enabled, playbooks: getPlaybookPolicies() })
     }
 
     if (action === "set_safe_mode" && typeof safeMode === "boolean") {

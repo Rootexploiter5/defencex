@@ -18,6 +18,7 @@ interface ReportsViewProps {
   connections: NetworkConnection[]
   balance: number
   setNotice: (n: string) => void
+  onOpenExecutiveBriefing?: () => void
 }
 
 export function ReportsView({
@@ -28,6 +29,7 @@ export function ReportsView({
   connections,
   balance,
   setNotice,
+  onOpenExecutiveBriefing,
 }: ReportsViewProps) {
   function downloadReport(title: string) {
     let rows: (string | number)[][] = []
@@ -138,19 +140,56 @@ export function ReportsView({
         <div>
           <h2>Security insights, ready to share</h2>
           <p>
-            Download structured CSV summaries compiled directly from live host
-            telemetry.
+            Download structured CSV summaries or generate board-ready CISO executive briefings directly from live host telemetry.
           </p>
         </div>
-        <button
-          className="primary-button"
-          onClick={() => downloadReport("Security overview")}
-        >
-          Export overview <Icon name="arrow" size={18} />
-        </button>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+          {onOpenExecutiveBriefing && (
+            <button
+              className="primary-button"
+              style={{
+                background: "linear-gradient(135deg, #b45309, #78350f)",
+                borderColor: "#f59e0b",
+                margin: 0,
+              }}
+              onClick={onOpenExecutiveBriefing}
+            >
+              Executive Briefing (PDF) <Icon name="shield" size={18} />
+            </button>
+          )}
+          <button
+            className="secondary-button"
+            onClick={() => downloadReport("Security overview")}
+          >
+            Export overview CSV <Icon name="arrow" size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="reports-grid">
+        {onOpenExecutiveBriefing && (
+          <article className="card tab-panel report-card" style={{ border: "2px solid #d97706", background: "linear-gradient(120deg, #fffbeb, #fef3c7)" }}>
+            <div className="report-icon" style={{ background: "radial-gradient(circle, #b45309, #78350f)", color: "#fef3c7" }}>
+              <Icon name="shield" size={31} />
+            </div>
+            <span className="eyebrow" style={{ color: "#b45309" }}>EXECUTIVE · NIST CSF 2.0 · PRINT / PDF</span>
+            <h2 style={{ color: "#78350f" }}>CISO Executive Posture Briefing</h2>
+            <p>
+              Board-ready cyber posture briefing evaluating NIST CSF 2.0 domain readiness, live EWMA anomaly scores, and MITRE ATT&CK killchain coverage.
+            </p>
+            <button
+              className="primary-button"
+              style={{
+                background: "linear-gradient(135deg, #b45309, #78350f)",
+                borderColor: "#f59e0b",
+                marginTop: "12px",
+              }}
+              onClick={onOpenExecutiveBriefing}
+            >
+              Open Executive Briefing <Icon name="arrow" size={17} />
+            </button>
+          </article>
+        )}
         {[
           {
             title: "Security overview",

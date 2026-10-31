@@ -5,6 +5,7 @@ import { Icon } from "@/components/common/Icon"
 import { PerformanceChart } from "@/components/common/Charts"
 import { TelemetrySnapshot, TelemetryPoint, ProcessInfo } from "@/types/defenx"
 import { getRiskColor } from "@/lib/formatters"
+import { ProcessTreeGraph } from "@/components/common/ProcessTreeGraph"
 
 interface LiveMonitorViewProps {
   telemetry: TelemetrySnapshot | null
@@ -12,6 +13,7 @@ interface LiveMonitorViewProps {
   processes: ProcessInfo[]
   refreshAll: () => void
   openDetail: (title: string) => void
+  onQuarantine?: (pid: number, name: string) => void
 }
 
 export function LiveMonitorView({
@@ -20,10 +22,12 @@ export function LiveMonitorView({
   processes,
   refreshAll,
   openDetail,
+  onQuarantine,
 }: LiveMonitorViewProps) {
   const [period, setPeriod] = useState("24h")
   const [paused, setPaused] = useState(false)
   const [processQuery, setProcessQuery] = useState("")
+  const [viewMode, setViewMode] = useState<"table" | "tree">("table")
 
   const filteredProcesses = useMemo(() => {
     if (!processQuery.trim()) return processes
@@ -249,17 +253,43 @@ export function LiveMonitorView({
             <Icon name="layers" />
             Active Windows Processes ({processes.length})
           </h2>
-          <label className="field-search" style={{ maxWidth: "280px" }}>
-            <Icon name="search" size={17} />
-            <input
-              placeholder="Filter processes, PID, or risks..."
-              value={processQuery}
-              onChange={(e) => setProcessQuery(e.target.value)}
-            />
-          </label>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div className="periods" style={{ margin: 0 }}>
+              <button
+                className={viewMode === "table" ? "selected" : ""}
+                onClick={() => setViewMode("table")}
+              >
+                Table View
+              </button>
+              <button
+                className={viewMode === "tree" ? "selected" : ""}
+                onClick={() => setViewMode("tree")}
+              >
+                Lineage Tree (DAG)
+              </button>
+            </div>
+            {viewMode === "table" && (
+              <label className="field-search" style={{ maxWidth: "240px" }}>
+                <Icon name="search" size={17} />
+                <input
+                  placeholder="Filter processes, PID, or risks..."
+                  value={processQuery}
+                  onChange={(e) => setProcessQuery(e.target.value)}
+                />
+              </label>
+            )}
+          </div>
         </div>
-        <div className="table-scroll">
-          <table className="data-table">
+
+        {viewMode === "tree" ? (
+          <ProcessTreeGraph
+            processes={processes}
+            openDetail={openDetail}
+            onQuarantine={onQuarantine}
+          />
+        ) : (
+          <div className="table-scroll">
+            <table className="data-table">
             <thead>
               <tr>
                 <th>Process</th>
@@ -349,6 +379,7 @@ export function LiveMonitorView({
             </tbody>
           </table>
         </div>
+        )}
       </section>
     </>
   )
