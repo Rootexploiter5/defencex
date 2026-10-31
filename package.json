@@ -7,6 +7,7 @@
     "dev": "next dev -p 8443",
     "build": "next build",
     "start": "next start -p 8443",
+    "typecheck": "tsc --noEmit",
     "format": "oxfmt"
   },
   "dependencies": {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getRealProcesses } from "@/lib/systemMetrics"
+import { logError } from "@/lib/logger"
 
 export async function GET() {
   try {
@@ -10,6 +11,7 @@ export async function GET() {
       data: processes,
     })
   } catch (error) {
+    logError("API /api/processes GET", error)
     return NextResponse.json(
       { success: false, error: (error as Error).message },
       { status: 500 },

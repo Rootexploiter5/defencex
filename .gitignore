@@ -29,6 +29,8 @@ Thumbs.db
 *.sw?
 
 # Temporary archives & logs
+data/
+*.tsbuildinfo
 *.zip
 npm-debug.log*
 yarn-debug.log*
