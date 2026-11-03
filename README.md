@@ -91,3 +91,5 @@ npm run start
 
 ### Keyboard Shortcuts
 - `Ctrl + K` or `Cmd + K`: Jump to global threat, process, and log search.
+ 
+ HELLOOOOOOOOOOOOOOOOOOOOOOOOI
